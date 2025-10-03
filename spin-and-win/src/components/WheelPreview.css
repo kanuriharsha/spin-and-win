@@ -1,0 +1,180 @@
+.wheel-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.wheel-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 500px;
+}
+
+.preview-wheel {
+  width: min(400px, 85vw);
+  height: min(400px, 85vw);
+  max-width: 100%;
+  border-radius: 50%;
+  position: relative;
+  will-change: transform;
+}
+
+.preview-center-logo {
+  position: absolute;
+  width: 16%;
+  height: 16%;
+  object-fit: cover;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.preview-pointer {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-left: 22px solid #e53935;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+}
+
+.preview-spin-btn {
+  margin-top: 20px;
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(17,24,39,0.2);
+  transition: transform 0.1s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  touch-action: manipulation;
+  min-height: 48px;
+  font-size: clamp(14px, 3vw, 16px);
+}
+
+.preview-spin-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.preview-spin-btn:active {
+  transform: translateY(1px);
+}
+
+.preview-winner-banner {
+  margin-top: 16px;
+  font-size: clamp(16px, 4vw, 18px);
+  font-weight: 500;
+  color: #2d3748;
+  text-align: center;
+  padding: 8px 16px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Tablet responsive */
+@media (max-width: 1024px) {
+  .wheel-wrapper {
+    padding: 16px;
+  }
+  
+  .preview-wheel {
+    width: min(350px, 80vw);
+    height: min(350px, 80vw);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .wheel-wrapper {
+    padding: 16px;
+    border-radius: 8px;
+  }
+  
+  .preview-wheel {
+    width: min(300px, 85vw);
+    height: min(300px, 85vw);
+  }
+  
+  .preview-pointer {
+    right: -6px;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 18px solid #e53935;
+  }
+  
+  .preview-spin-btn {
+    margin-top: 24px;
+    padding: 16px 32px;
+    font-size: 16px;
+    min-height: 52px;
+  }
+  
+  .preview-winner-banner {
+    margin-top: 20px;
+    font-size: 18px;
+    padding: 12px 20px;
+  }
+}
+
+/* Small mobile phones */
+@media (max-width: 480px) {
+  .wheel-wrapper {
+    padding: 12px;
+  }
+  
+  .preview-wheel {
+    width: min(280px, 90vw);
+    height: min(280px, 90vw);
+  }
+  
+  .preview-pointer {
+    right: -4px;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 15px solid #e53935;
+  }
+  
+  .preview-spin-btn {
+    padding: 18px 36px;
+    font-size: 18px;
+    min-height: 56px;
+  }
+  
+  .preview-winner-banner {
+    font-size: 20px;
+    padding: 16px 24px;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 320px) {
+  .preview-wheel {
+    width: min(250px, 95vw);
+    height: min(250px, 95vw);
+  }
+  
+  .preview-spin-btn {
+    padding: 16px 28px;
+    font-size: 16px;
+  }
+}
