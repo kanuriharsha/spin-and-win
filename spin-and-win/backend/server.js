@@ -8,6 +8,9 @@ const cors = require('cors');
 
 const app = express();
 
+// Add for Render proxy
+app.set('trust proxy', 1);
+
 // Middleware
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map(s => s.trim())

@@ -887,7 +887,9 @@ export default function Editor() {
             <div className="form-group">
               <label>Custom URL</label>
               <div className="url-input-wrapper">
-                <span className="url-prefix">localhost/</span>
+                <span className="url-prefix">
+                  {typeof window !== 'undefined' ? `${window.location.host}/` : '/'}
+                </span>
                 <input
                   type="text"
                   value={wheelData.routeName}
