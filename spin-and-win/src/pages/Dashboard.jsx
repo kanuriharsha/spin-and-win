@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
+// ✅ API base from env (fallback to local)
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 export default function Dashboard() {
   const [wheels, setWheels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,7 +12,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Fetch saved wheels from the backend
-    fetch('http://localhost:5000/api/wheels')
+    fetch(`${API_URL}/api/wheels`)
       .then(res => res.json())
       .then(data => {
         setWheels(data);
@@ -31,7 +34,7 @@ export default function Dashboard() {
     
     if (!window.confirm('Are you sure you want to delete this wheel?')) return;
     
-    fetch(`http://localhost:5000/api/wheels/${id}`, {
+    fetch(`${API_URL}/api/wheels/${id}`, {
       method: 'DELETE',
     })
       .then(res => res.json())

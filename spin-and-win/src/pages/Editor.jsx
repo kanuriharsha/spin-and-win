@@ -5,6 +5,9 @@ import './Editor.css';
 import WheelPreview from '../components/WheelPreview';
 import FormPreview from '../components/FormPreview';
 
+// ✅ API base from env (fallback to local)
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 const DEFAULT_FORM_CONFIG = {
   enabled: true,
   title: 'Enter Your Details',
@@ -125,7 +128,7 @@ export default function Editor() {
 
   useEffect(() => {
     if (!isEditMode) return;
-    fetch(`http://localhost:5000/api/wheels/${id}`)
+    fetch(`${API_URL}/api/wheels/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setWheelData({
@@ -326,8 +329,8 @@ export default function Editor() {
 
     const method = isEditMode ? 'PUT' : 'POST';
     const url = isEditMode 
-      ? `http://localhost:5000/api/wheels/${id}` 
-      : 'http://localhost:5000/api/wheels';
+      ? `${API_URL}/api/wheels/${id}` 
+      : `${API_URL}/api/wheels`;
 
     fetch(url, {
       method,

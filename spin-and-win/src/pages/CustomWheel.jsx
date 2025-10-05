@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import './CustomWheel.css';
 
+// ✅ API base from env (fallback to local)
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 const DEFAULT_FORM_CONFIG = {
   enabled: true,
   title: 'Enter Your Details',
@@ -100,7 +103,7 @@ export default function CustomWheel() {
   const audioCtxRef = useRef(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/wheels/route/${routeName}`)
+    fetch(`${API_URL}/api/wheels/route/${routeName}`)
       .then((res) => {
         if (!res.ok) throw new Error('Wheel not found');
         return res.json();
@@ -129,7 +132,7 @@ export default function CustomWheel() {
     evt.preventDefault();
     if (!validateForm()) return;
     try {
-      const response = await fetch('http://localhost:5000/api/spin-results/session', {
+      const response = await fetch(`${API_URL}/api/spin-results/session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -223,7 +226,7 @@ export default function CustomWheel() {
     let winIndex;
     if (sessionId) {
       try {
-        const res = await fetch(`http://localhost:5000/api/wheels/${wheelData._id}/spin`, {
+        const res = await fetch(`${API_URL}/api/wheels/${wheelData._id}/spin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-session-id': sessionId }
         });
@@ -309,7 +312,7 @@ export default function CustomWheel() {
 
     if (sessionId && prize) {
       try {
-        await fetch(`http://localhost:5000/api/spin-results/session/${sessionId}/result`, {
+        await fetch(`${API_URL}/api/spin-results/session/${sessionId}/result`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ winner: prize })
