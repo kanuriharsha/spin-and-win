@@ -9,7 +9,18 @@ const cors = require('cors');
 const app = express();
 
 // Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(s => s.trim())
+  : (process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
+      : true); // true => reflect request origin
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','x-session-id','Authorization'],
+  credentials: false
+}));
+app.options('*', cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: '50mb' })); // Increased limit for image uploads
 app.use(morgan('dev'));
 

@@ -2,6 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import './CustomWheel.css';
 
+// Add: API base from env (fallback to localhost in dev, same-origin otherwise)
+const API_URL =
+  (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim()) ||
+  ((typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+     window.location.hostname === '127.0.0.1' ||
+     window.location.hostname === '::1'))
+    ? 'http://localhost:5000'
+    : '');
+
 const DEFAULT_FORM_CONFIG = {
   enabled: true,
   title: 'Enter Your Details',
@@ -92,7 +102,7 @@ export default function CustomWheel() {
   const baseTurnsRef = useRef(5);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/wheels/route/${routeName}`)
+    fetch(`${API_URL}/api/wheels/route/${routeName}`)
       .then((res) => {
         if (!res.ok) throw new Error('Wheel not found');
         return res.json();
@@ -137,7 +147,7 @@ export default function CustomWheel() {
     evt.preventDefault();
     if (!validateForm()) return;
     try {
-      const response = await fetch('http://localhost:5000/api/spin-results/session', {
+      const response = await fetch(`${API_URL}/api/spin-results/session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -190,7 +200,7 @@ export default function CustomWheel() {
 
     if (sessionId && prize) {
       try {
-        await fetch(`http://localhost:5000/api/spin-results/session/${sessionId}/result`, {
+        await fetch(`${API_URL}/api/spin-results/session/${sessionId}/result`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ winner: prize })

@@ -2,8 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
-// ✅ API base from env (fallback to local)
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// ✅ API base from env → localhost in dev → same-origin in prod
+const API_URL =
+  (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim()) ||
+  ((typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+     window.location.hostname === '127.0.0.1' ||
+     window.location.hostname === '::1'))
+    ? 'http://localhost:5000'
+    : '');
 
 export default function Dashboard() {
   const [wheels, setWheels] = useState([]);

@@ -2,8 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import './CustomWheel.css';
 
-// ✅ API base from env (fallback to local)
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// ✅ API base from env → localhost in dev → same-origin in prod
+const API_URL =
+  (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim()) ||
+  ((typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+     window.location.hostname === '127.0.0.1' ||
+     window.location.hostname === '::1'))
+    ? 'http://localhost:5000'
+    : '');
+
+// const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const DEFAULT_FORM_CONFIG = {
   enabled: true,
