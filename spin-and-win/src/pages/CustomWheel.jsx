@@ -628,15 +628,51 @@ export default function CustomWheel() {
 
       {/* New: Winner popup styled like the screenshot */}
       {showWinnerModal && (
-        <div className="winner-toast-overlay" role="dialog" aria-modal="true">
+        <div
+          className="winner-toast-overlay"
+          role="dialog"
+          aria-modal="true"
+          style={{
+            backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('${process.env.PUBLIC_URL}/fireworks-15757.gif')`,
+            backgroundSize: '100% 100%, cover',
+            backgroundRepeat: 'no-repeat, no-repeat',
+            backgroundPosition: 'center, center'
+          }}
+        >
           <div className="winner-toast" role="document">
-            <div className="winner-toast-bar">We have a winner!</div>
+          <div
+  className="winner-toast-bar"
+  style={{
+    background: 'linear-gradient(90deg, #ffcc33, #ff6600)',
+    color: '#fff',
+    padding: '10px 15px',
+    borderRadius: '10px',
+    fontWeight: 600,
+    textAlign: 'center',
+    fontSize: '1.1rem',
+    boxShadow: '0 0 10px rgba(255, 165, 0, 0.7)',
+  }}
+>
+  🎉 Congrats{' '}
+  <span
+    style={{
+      color: '#000',
+      fontWeight: 700,
+      textShadow: '0 0 6px rgba(255, 255, 255, 0.8)',
+      fontFamily: 'Poppins, sans-serif',
+    }}
+  >
+    {`${(formData.name || '').trim()} ${(formData.surname || '').trim()}`.trim() || 'Player'}
+  </span>{' '}
+  🎉 You've won!
+</div>
+
             <div className="winner-toast-body">
               <div className="winner-name">
                 {winner || '—'}
               </div>
               <div className="winner-subtext">
-                {`${(formData.name || '').trim()} ${(formData.surname || '').trim()}`.trim() || 'Player'}
+                <b>Thank you for availing the offer 🙏🏼 We hope to see you again!</b>
               </div>
               <div className="winner-actions">
                 <button
