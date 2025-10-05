@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useCallback } from 'react';
 import './pehsai.css';
 
 const COLORS = ['#e74c3c', '#27ae60', '#f1c40f', '#3498db'];
@@ -26,7 +26,6 @@ export default function Pehsai() {
   const [winner, setWinner] = useState(null);
   const [centerImg, setCenterImg] = useState(null);
   const baseTurnsRef = useRef(0);
-  const spinTimerRef = useRef(null);
 
   const segAngle = useMemo(() => (names.length > 0 ? 360 / names.length : 0), [names]);
 
@@ -59,24 +58,9 @@ export default function Pehsai() {
     baseTurnsRef.current += 5; // at least 5 full rotations for drama
     const targetRotation = baseTurnsRef.current * 360 + (360 - targetCenterDeg);
     setRotation(targetRotation);
-
-    // Fallback: ensure onSpinEnd runs even if transitionend is missed
-    if (spinTimerRef.current) clearTimeout(spinTimerRef.current);
-    spinTimerRef.current = setTimeout(() => {
-      onSpinEnd();
-    }, 4500 + 120); // CSS duration 4.5s + small buffer
   }, [names.length, segAngle, spinning]);
 
   const onSpinEnd = () => {
-    // Guard: run only once per spin
-    if (!spinning) return;
-
-    // Clear fallback timer if transitionend fired
-    if (spinTimerRef.current) {
-      clearTimeout(spinTimerRef.current);
-      spinTimerRef.current = null;
-    }
-
     // Normalize rotation to [0,360)
     const norm = ((rotation % 360) + 360) % 360;
     // Angle at pointer = 0deg, so winner index is based on (360 - norm)
@@ -88,12 +72,7 @@ export default function Pehsai() {
     baseTurnsRef.current = Math.floor(rotation / 360);
   };
 
-  useEffect(() => {
-    return () => {
-      if (spinTimerRef.current) clearTimeout(spinTimerRef.current);
-    };
-  }, []);
-
+  const size = 520; // px
   const vb = 1000;
   const cx = 500;
   const cy = 500;
@@ -103,57 +82,55 @@ export default function Pehsai() {
     <div className="pehsai-layout">
       <div className="wheel-card">
         <div className="wheel-wrap">
-          <div className="wheel-stage">
-            <div
-              className="wheel"
-              style={{
-                transform: `rotate(${rotation}deg)`,
-                transition: spinning ? 'transform 4.5s cubic-bezier(0.22, 0.61, 0.36, 1)' : 'none'
-              }}
-              onTransitionEnd={onSpinEnd}
-            >
-              <svg width="100%" height="100%" viewBox={`0 0 ${vb} ${vb}`} role="img" aria-label="Spin & Win Wheel">
-                <defs>
-                  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#00000033" />
-                  </filter>
-                </defs>
-                <g filter="url(#shadow)">
-                  {names.map((name, i) => {
-                    const start = i * segAngle;
-                    const end = (i + 1) * segAngle;
-                    const mid = start + segAngle / 2;
-                    const tx = cx + (r * 0.64) * Math.cos(degToRad(mid));
-                    const ty = cy + (r * 0.64) * Math.sin(degToRad(mid));
-                    return (
-                      <g key={i}>
-                        <path d={segmentPath(cx, cy, r, start, end)} fill={COLORS[i % COLORS.length]} />
-                        <text
-                          x={tx}
-                          y={ty}
-                          fill="#fff"
-                          fontSize="44"
-                          fontWeight="700"
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          transform={`rotate(${mid}, ${tx}, ${ty})`}
-                          style={{ paintOrder: 'stroke', stroke: 'rgba(0,0,0,0.25)', strokeWidth: 3 }}
-                        >
-                          {name}
-                        </text>
-                      </g>
-                    );
-                  })}
-                  <circle cx={cx} cy={cy} r={70} fill="#ffffff" />
-                </g>
-              </svg>
-              {centerImg && (
-                <img className="center-logo" src={centerImg} alt="Center logo" />
-              )}
-            </div>
-            <div className="pointer" aria-hidden />
+          <div
+            className="wheel"
+            style={{
+              transform: `rotate(${rotation}deg)`,
+              transition: spinning ? 'transform 4.5s cubic-bezier(0.22, 0.61, 0.36, 1)' : 'none'
+            }}
+            onTransitionEnd={onSpinEnd}
+          >
+            <svg width={size} height={size} viewBox={`0 0 ${vb} ${vb}`} role="img" aria-label="Spin & Win Wheel">
+              <defs>
+                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#00000033" />
+                </filter>
+              </defs>
+              <g filter="url(#shadow)">
+                {names.map((name, i) => {
+                  const start = i * segAngle;
+                  const end = (i + 1) * segAngle;
+                  const mid = start + segAngle / 2;
+                  const tx = cx + (r * 0.64) * Math.cos(degToRad(mid));
+                  const ty = cy + (r * 0.64) * Math.sin(degToRad(mid));
+                  return (
+                    <g key={i}>
+                      <path d={segmentPath(cx, cy, r, start, end)} fill={COLORS[i % COLORS.length]} />
+                      <text
+                        x={tx}
+                        y={ty}
+                        fill="#fff"
+                        fontSize="44"
+                        fontWeight="700"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        transform={`rotate(${mid}, ${tx}, ${ty})`}
+                        style={{ paintOrder: 'stroke', stroke: 'rgba(0,0,0,0.25)', strokeWidth: 3 }}
+                      >
+                        {name}
+                      </text>
+                    </g>
+                  );
+                })}
+                <circle cx={cx} cy={cy} r={70} fill="#ffffff" />
+              </g>
+            </svg>
+            {centerImg && (
+              <img className="center-logo" src={centerImg} alt="Center logo" />
+            )}
           </div>
 
+          <div className="pointer" aria-hidden />
           <button
             className="spin-btn"
             onClick={pickSpin}
@@ -189,4 +166,3 @@ export default function Pehsai() {
     </div>
   );
 }
-

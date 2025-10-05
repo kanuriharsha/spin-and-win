@@ -38,83 +38,32 @@ const mergeFormConfig = (incoming = {}) => ({
   }
 });
 
-// Helper: convert File -> dataURL
-async function fileToDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onload = () => resolve(fr.result);
-    fr.onerror = reject;
-    fr.readAsDataURL(file);
+const normalizeSegments = (segments = []) =>
+  segments.map((segment) => {
+    const weight = Number(segment?.probability);
+    return {
+      ...segment,
+      probability: Number.isFinite(weight) && weight >= 0 ? weight : 1
+    };
   });
-}
-
-// Helper: bytes of a dataURL base64 payload
-function dataURLBytes(dataURL) {
-  try {
-    const base64 = String(dataURL || '').split(',')[1] || '';
-    const padding = (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0);
-    return Math.ceil((base64.length * 3) / 4) - padding;
-  } catch {
-    return 0;
-  }
-}
-
-// Helper: compress image into dataURL (JPEG) under target bytes and max dimension
-async function compressImageToDataURL(file, { maxDim = 600, targetBytes = 800 * 1024 } = {}) {
-  const srcDataURL = await fileToDataURL(file);
-  const img = document.createElement('img');
-  img.decoding = 'async';
-  img.loading = 'eager';
-  await new Promise((resolve, reject) => {
-    img.onload = () => resolve();
-    img.onerror = reject;
-    img.src = srcDataURL;
-  });
-
-  const w = img.naturalWidth || img.width;
-  const h = img.naturalHeight || img.height;
-  const scale = Math.min(1, maxDim / Math.max(w, h));
-  const cw = Math.max(1, Math.floor(w * scale));
-  const ch = Math.max(1, Math.floor(h * scale));
-
-  const canvas = document.createElement('canvas');
-  canvas.width = cw;
-  canvas.height = ch;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0, cw, ch);
-
-  let q = 0.85;
-  let out = canvas.toDataURL('image/jpeg', q);
-  // Reduce quality until under target or a floor quality
-  while (dataURLBytes(out) > targetBytes && q > 0.55) {
-    q -= 0.05;
-    out = canvas.toDataURL('image/jpeg', q);
-  }
-  return out;
-}
 
 export default function Editor() {
   const { id } = useParams();
   const navigate = useNavigate();
-  // Treat 'undefined' as no id to avoid bad fetches
-  const isEditMode = !!id && id !== 'undefined';
+  const isEditMode = !!id;
 
   const [activeTab, setActiveTab] = useState('wheel');
   const [wheelData, setWheelData] = useState({
     name: 'New Spinning Wheel',
     routeName: '',
-    segments: [
-      { text: 'Prize 1', color: '#e74c3c', image: null, dailyLimit: null, dailyRemaining: null },
-      { text: 'Prize 2', color: '#27ae60', image: null, dailyLimit: null, dailyRemaining: null },
-      { text: 'Prize 3', color: '#f1c40f', image: null, dailyLimit: null, dailyRemaining: null },
-      { text: 'Prize 4', color: '#3498db', image: null, dailyLimit: null, dailyRemaining: null }
-    ],
+    segments: normalizeSegments([
+      { text: 'Prize 1', color: '#e74c3c', image: null, probability: 1 },
+      { text: 'Prize 2', color: '#27ae60', image: null, probability: 1 },
+      { text: 'Prize 3', color: '#f1c40f', image: null, probability: 1 },
+      { text: 'Prize 4', color: '#3498db', image: null, probability: 1 }
+    ]),
     centerImage: null,
-    formConfig: DEFAULT_FORM_CONFIG,
-    // New: persisted spin + center image config
-    spinDurationSec: null,           // seconds (null => 3–5s random)
-    spinBaseTurns: 6,                // full rotations before landing
-    centerImageRadius: 70            // SVG radius for center image
+    formConfig: DEFAULT_FORM_CONFIG
   });
   
   const [activeSegmentIndex, setActiveSegmentIndex] = useState(0);
@@ -130,12 +79,8 @@ export default function Editor() {
       .then((data) => {
         setWheelData({
           ...data,
-          segments: Array.isArray(data.segments) ? data.segments : [],
-          formConfig: mergeFormConfig(data.formConfig),
-          // safe defaults
-          spinDurationSec: (Number.isFinite(data.spinDurationSec) && data.spinDurationSec >= 1 && data.spinDurationSec <= 60) ? data.spinDurationSec : null,
-          spinBaseTurns: Math.max(1, Math.min(20, Math.floor(Number(data.spinBaseTurns ?? 6)))),
-          centerImageRadius: Math.max(20, Math.min(160, Math.floor(Number(data.centerImageRadius ?? 70))))
+          segments: normalizeSegments(data.segments),
+          formConfig: mergeFormConfig(data.formConfig)
         });
         setActiveSegmentIndex(0);
       })
@@ -147,25 +92,17 @@ export default function Editor() {
 
   const handleSegmentChange = (index, field, value) => {
     setWheelData((prev) => {
-      const segments = prev.segments.map((segment, i) => {
-        if (i !== index) return segment;
-        // New: dailyLimit handling, empty => unlimited
-        if (field === 'dailyLimit') {
-          const raw = value;
-          const isEmpty = raw === '' || raw === null || raw === undefined;
-          if (isEmpty) {
-            return { ...segment, dailyLimit: null, dailyRemaining: null };
-          }
-          const limit = Math.max(0, Math.floor(Number(raw) || 0));
-          const prevRemaining = Number.isFinite(segment.dailyRemaining) ? Math.floor(segment.dailyRemaining) : limit;
-          return {
-            ...segment,
-            dailyLimit: limit,
-            dailyRemaining: Math.min(limit, Math.max(0, prevRemaining))
-          };
-        }
-        return { ...segment, [field]: value };
-      });
+      const segments = prev.segments.map((segment, i) =>
+        i === index
+          ? {
+              ...segment,
+              [field]:
+                field === 'probability'
+                  ? Math.max(0, Number(value) || 0)
+                  : value
+            }
+          : segment
+      );
       return { ...prev, segments };
     });
   };
@@ -193,7 +130,7 @@ export default function Editor() {
       ...wheelData,
       segments: [
         ...wheelData.segments,
-        { text: `Prize ${wheelData.segments.length + 1}`, color: newColor, image: null, dailyLimit: null, dailyRemaining: null }
+        { text: `Prize ${wheelData.segments.length + 1}`, color: newColor, image: null, probability: 1 }
       ]
     });
     
@@ -220,27 +157,20 @@ export default function Editor() {
     handleSegmentChange(activeSegmentIndex, 'color', color.hex);
   };
 
-  const handleImageUpload = async (e, segmentIndex) => {
+  const handleImageUpload = (e, segmentIndex) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    try {
-      // Use same cap for center/segment for now
-      const maxDim = 600;
-      const targetBytes = 800 * 1024; // ~800 KB
-      const compressed = await compressImageToDataURL(file, { maxDim, targetBytes });
-
+    
+    const reader = new FileReader();
+    reader.onload = () => {
       if (segmentIndex !== undefined) {
-        handleSegmentChange(segmentIndex, 'image', compressed);
+        handleSegmentChange(segmentIndex, 'image', reader.result);
       } else {
-        setWheelData({ ...wheelData, centerImage: compressed });
+        setWheelData({ ...wheelData, centerImage: reader.result });
       }
-    } catch (err) {
-      console.error('Image processing failed:', err);
-      alert('Failed to process image. Please try a smaller image.');
-    } finally {
-      e.target.value = '';
-    }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const handleRemoveImage = (segmentIndex) => {
@@ -249,52 +179,6 @@ export default function Editor() {
     } else {
       setWheelData({ ...wheelData, centerImage: null });
     }
-  };
-
-  // Add: rules handlers
-  const handleRuleChange = (segIdx, ruleIdx, field, value) => {
-    setWheelData(prev => {
-      const segs = Array.isArray(prev.segments) ? [...prev.segments] : [];
-      if (segIdx < 0 || segIdx >= segs.length) return prev;
-
-      const seg = segs[segIdx] || {};
-      const rules = Array.isArray(seg.rules) ? [...seg.rules] : [];
-      const next = { ...(rules[ruleIdx] || { op: '>', amount: 0, dailyLimit: 0 }) };
-
-      if (field === 'op') next.op = String(value);
-      if (field === 'amount') next.amount = value === '' ? '' : Math.max(0, Number(value) || 0);
-      if (field === 'dailyLimit') next.dailyLimit = value === '' ? '' : Math.max(0, Number(value) || 0);
-
-      rules[ruleIdx] = next;
-      segs[segIdx] = { ...seg, rules };
-      return { ...prev, segments: segs };
-    });
-  };
-
-  const handleAddRule = (segIdx) => {
-    setWheelData(prev => {
-      const segs = Array.isArray(prev.segments) ? [...prev.segments] : [];
-      if (segIdx < 0 || segIdx >= segs.length) return prev;
-
-      const seg = segs[segIdx] || {};
-      const rules = Array.isArray(seg.rules) ? [...seg.rules] : [];
-      rules.push({ op: '>', amount: 0, dailyLimit: 0 });
-      segs[segIdx] = { ...seg, rules };
-      return { ...prev, segments: segs };
-    });
-  };
-
-  const handleRemoveRule = (segIdx, ruleIdx) => {
-    setWheelData(prev => {
-      const segs = Array.isArray(prev.segments) ? [...prev.segments] : [];
-      if (segIdx < 0 || segIdx >= segs.length) return prev;
-
-      const seg = segs[segIdx] || {};
-      const rules = Array.isArray(seg.rules) ? [...seg.rules] : [];
-      if (ruleIdx >= 0 && ruleIdx < rules.length) rules.splice(ruleIdx, 1);
-      segs[segIdx] = { ...seg, rules };
-      return { ...prev, segments: segs };
-    });
   };
 
   const validateForm = () => {
@@ -316,40 +200,36 @@ export default function Editor() {
 
   const handleSave = () => {
     if (!validateForm()) return;
+    
     setSaving(true);
-
+    
     const payload = {
       ...wheelData,
-      segments: wheelData.segments,
+      segments: normalizeSegments(wheelData.segments),
       formConfig: mergeFormConfig(wheelData.formConfig)
     };
-
+    
     const method = isEditMode ? 'PUT' : 'POST';
     const url = isEditMode 
       ? `http://localhost:5000/api/wheels/${id}` 
       : 'http://localhost:5000/api/wheels';
-
+    
     fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-      .then(async (res) => {
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok || !body?._id) {
-          throw new Error(body?.message || 'Failed to save wheel');
-        }
-        return body;
-      })
-      .then((savedWheel) => {
+      .then(res => res.json())
+      .then(savedWheel => {
         setSaving(false);
         setSaveModalOpen(false);
+        // Navigate to the newly created/edited wheel's editor page
         navigate(`/editor/${savedWheel._id}`);
       })
       .catch(err => {
         console.error('Error saving wheel:', err);
         setSaving(false);
-        alert(err.message || 'Failed to save your wheel. Please try again.');
+        alert('Failed to save your wheel. Please try again.');
       });
   };
 
@@ -420,64 +300,6 @@ export default function Editor() {
                     />
                   </label>
                 )}
-
-                {/* New: center image size slider */}
-                <div className="form-group" style={{ marginTop: 12 }}>
-                  <label>Center Image Size</label>
-                  <input
-                    type="range"
-                    min="20"
-                    max="160"
-                    step="1"
-                    value={wheelData.centerImageRadius ?? 70}
-                    onChange={(e) =>
-                      setWheelData(prev => ({
-                        ...prev,
-                        centerImageRadius: Math.max(20, Math.min(160, Math.floor(Number(e.target.value) || 70)))
-                      }))
-                    }
-                  />
-                  <small>{wheelData.centerImageRadius ?? 70}px radius</small>
-                </div>
-              </div>
-
-              {/* New: Spin config (duration + base rotations) */}
-              <div className="spin-duration-control">
-                <h3>Spin Settings</h3>
-                <div className="form-group">
-                  <label>Spin Duration (seconds)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="60"
-                    step="0.1"
-                    value={wheelData.spinDurationSec ?? ''}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      if (raw === '') { setWheelData(p => ({ ...p, spinDurationSec: null })); return; }
-                      const n = Number(raw);
-                      if (!Number.isFinite(n)) return;
-                      setWheelData(p => ({ ...p, spinDurationSec: Math.max(1, Math.min(60, n)) }));
-                    }}
-                    placeholder="Leave empty for random 3–5s"
-                  />
-                  <small>Leave empty to use random 3–5 seconds.</small>
-                </div>
-
-                <div className="form-group">
-                  <label>Base Rotations</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="20"
-                    step="1"
-                    value={wheelData.spinBaseTurns ?? 6}
-                    onChange={(e) =>
-                      setWheelData(p => ({ ...p, spinBaseTurns: Math.max(1, Math.min(20, Math.floor(Number(e.target.value) || 6))) }))
-                    }
-                  />
-                  <small>How many full turns before the wheel lands.</small>
-                </div>
               </div>
             </div>
             
@@ -510,7 +332,7 @@ export default function Editor() {
                         placeholder="Enter text"
                       />
                       <p className="segment-probability">
-                        Limit: {segment.dailyLimit ?? 'Unlimited'}{segment.dailyLimit != null ? ` • Left: ${segment.dailyRemaining ?? segment.dailyLimit}` : ''}
+                        Weight: {wheelData.segments[index].probability}
                       </p>
                     </div>
                     <button 
@@ -542,20 +364,15 @@ export default function Editor() {
                   </div>
                   
                   <div className="form-group">
-                    <label>Daily Limit (per day, optional)</label>
+                    <label>Probability Weight</label>
                     <input
                       type="number"
                       min="0"
-                      step="1"
-                      placeholder="Leave empty for unlimited"
-                      value={wheelData.segments[activeSegmentIndex].dailyLimit ?? ''}
-                      onChange={(e) => handleSegmentChange(activeSegmentIndex, 'dailyLimit', e.target.value)}
+                      step="0.1"
+                      value={wheelData.segments[activeSegmentIndex].probability}
+                      onChange={(e) => handleSegmentChange(activeSegmentIndex, 'probability', e.target.value)}
                     />
-                    <small>
-                      {wheelData.segments[activeSegmentIndex].dailyLimit == null
-                        ? 'Unlimited: no daily restriction.'
-                        : `Remaining today: ${wheelData.segments[activeSegmentIndex].dailyRemaining ?? wheelData.segments[activeSegmentIndex].dailyLimit}`}
-                    </small>
+                    <small>Higher numbers increase the chance of landing on this slice.</small>
                   </div>
                   
                   <div className="form-group">
@@ -609,67 +426,6 @@ export default function Editor() {
                         />
                       </label>
                     )}
-                  </div>
-
-                  {/* New: Rules configuration */}
-                  <div className="form-group">
-                    <label>Rules (based on Amount Spent)</label>
-                    <div className="rules-list">
-                      {(wheelData.segments[activeSegmentIndex].rules || []).map((rule, rIdx) => (
-                        <div key={rIdx} className="rule-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                          <div>
-                            <small>If amount</small>
-                            <select
-                              value={rule.op || '>'}
-                              onChange={(e) => handleRuleChange(activeSegmentIndex, rIdx, 'op', e.target.value)}
-                              style={{ width: '100%', minHeight: 44 }}
-                            >
-                              <option value=">">{'>'}</option>
-                              <option value=">=">{'>='}</option>
-                              <option value="<">{'<'}</option>
-                              <option value="<=">{'<='}</option>
-                              <option value="==">{'=='}</option>
-                              <option value="!=">{'!='}</option>
-                            </select>
-                          </div>
-                          <div>
-                            <small>Threshold</small>
-                            <input
-                              type="number"
-                              min="0"
-                              value={rule.amount ?? ''}
-                              onChange={(e) => handleRuleChange(activeSegmentIndex, rIdx, 'amount', e.target.value)}
-                              placeholder="e.g., 1500"
-                            />
-                          </div>
-                          <div>
-                            <small>Set daily limit to</small>
-                            <input
-                              type="number"
-                              min="0"
-                              value={rule.dailyLimit ?? ''}
-                              onChange={(e) => handleRuleChange(activeSegmentIndex, rIdx, 'dailyLimit', e.target.value)}
-                              placeholder="0 to block, 1 to allow once"
-                            />
-                          </div>
-                          <button
-                            type="button"
-                            className="remove-segment-btn"
-                            onClick={() => handleRemoveRule(activeSegmentIndex, rIdx)}
-                            aria-label="Remove rule"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        className="add-segment-btn"
-                        onClick={() => handleAddRule(activeSegmentIndex)}
-                      >
-                        Add Rule
-                      </button>
-                    </div>
                   </div>
                 </div>
               )}
@@ -909,32 +665,4 @@ export default function Editor() {
     </div>
   );
 }
-//                   className={errors.routeName ? 'error' : ''}
-//                 />
-//               </div>
-//               {errors.routeName && <div className="error-message">{errors.routeName}</div>}
-//             </div>
-            
-//             <div className="modal-actions">
-//               <button 
-//                 className="cancel-btn" 
-//                 onClick={() => setSaveModalOpen(false)}
-//                 disabled={saving}
-//               >
-//                 Cancel
-//               </button>
-//               <button 
-//                 className="confirm-save-btn" 
-//                 onClick={handleSave}
-//                 disabled={saving}
-//               >
-//                 {saving ? 'Saving...' : 'Save Wheel'}
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
+ 

@@ -75,12 +75,9 @@ export default function FormPreview({ formConfig }) {
                 {formConfig.fields.amountSpent.required && <span className="required">*</span>}
               </label>
               <input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0"
+                type="text"
                 value={formData.amountSpent}
-                onChange={(e) => updateField('amountSpent', e.target.value.replace(/[^\d.]/g, ''))}
+                onChange={(e) => updateField('amountSpent', e.target.value)}
                 placeholder={`Enter ${formConfig.fields.amountSpent.label.toLowerCase()}`}
               />
             </div>
@@ -134,4 +131,4 @@ export default function FormPreview({ formConfig }) {
     </div>
   );
 }
-
+   

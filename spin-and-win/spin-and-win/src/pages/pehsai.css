@@ -45,7 +45,6 @@
   position: absolute;
   right: -8px;
   top: 50%;
-  transform: rotate(180deg); /* rotates the pointer */
   transform: translateY(-50%);
   width: 0;
   height: 0;

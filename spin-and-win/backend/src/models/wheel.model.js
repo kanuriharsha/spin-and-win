@@ -18,23 +18,9 @@ const WheelSchema = new mongoose.Schema(
       text: { type: String, required: true },
       color: { type: String, required: true },
       image: { type: String }, // Base64 encoded image data
-      // New: per-day occurrence limiting
-      dailyLimit: { type: Number, default: null }, // null/undefined => unlimited
-      dailyRemaining: { type: Number, default: null }, // null when unlimited
-      lastResetAt: { type: Date }, // date at start of day when counts were last reset
-      // New: amount-based rules that can override the daily limit for eligibility
-      rules: [{
-        op: { type: String, enum: ['>', '>=', '<', '<=', '==', '!='], required: true },
-        amount: { type: Number, required: true, min: 0 },
-        dailyLimit: { type: Number, required: true, min: 0, max: 1000 }
-      }]
+      probability: { type: Number, default: 1, min: 0 } // Probability weight
     }],
     centerImage: { type: String }, // Base64 encoded image data
-    // New: persisted center image radius (SVG units, default matches current UI)
-    centerImageRadius: { type: Number, min: 20, max: 160, default: 70 },
-    // New: editor-configurable spin animation config
-    spinDurationSec: { type: Number, min: 1, max: 60, default: null },
-    spinBaseTurns: { type: Number, default: 6, min: 1, max: 20 },        // rotations before landing
     // Form configuration
     formConfig: {
       enabled: { type: Boolean, default: true },

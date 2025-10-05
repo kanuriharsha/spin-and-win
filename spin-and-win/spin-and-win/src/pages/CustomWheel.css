@@ -146,72 +146,6 @@
   line-height: 1.65;
 }
 
-/* Pre-spin name modal */
-.cw-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  display: grid;
-  place-items: center;
-  z-index: 1300;
-  padding: 20px;
-}
-
-.cw-modal {
-  width: min(520px, 100%);
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
-  display: flex;
-  flex-direction: column;
-  max-height: 80vh;
-  overflow: hidden;
-}
-
-.cw-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 22px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.cw-close-btn {
-  border: none;
-  background: none;
-  font-size: 26px;
-  color: #64748b;
-  cursor: pointer;
-}
-
-.cw-modal-content {
-  padding: 20px 22px;
-  display: grid;
-  gap: 12px;
-}
-
-.cw-field label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.cw-field input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 16px;
-}
-
-.cw-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 22px;
-  border-top: 1px solid #e2e8f0;
-}
-
 /* Wheel */
 .wheel-header {
   display: flex;
@@ -250,20 +184,18 @@
 
 .wheel-wrapper {
   position: relative;
-  width: min(640px, 100%);
-  padding: clamp(16px, 5vw, 24px);
+  width: min(600px, 100%);
+  padding: clamp(18px, 5vw, 28px);
   border-radius: 20px;
   background: #fff;
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
   display: grid;
   place-items: center;
-  gap: 14px; /* ensure spacing between wheel, button, banner */
 }
 
 .wheel {
-  width: min(560px, 92vw);
-  aspect-ratio: 1 / 1;
-  height: auto; /* responsive square */
+  width: min(86vw, 540px);
+  height: min(86vw, 540px);
   border-radius: 50%;
   position: relative;
   will-change: transform;
@@ -273,16 +205,15 @@
 
 .pointer {
   position: absolute;
-  right: -8px;
+  right: clamp(-10px, -1vw, -6px);
   top: 50%;
-  transform: translateY(-50%); /* match editor preview */
+  transform: translateY(-50%);
   width: 0;
   height: 0;
   border-top: 12px solid transparent;
   border-bottom: 12px solid transparent;
-  border-left: 22px solid #e53935; /* match editor preview */
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15)); /* match editor preview */
-  pointer-events: none;
+  border-left: 24px solid #ef4444;
+  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.2));
 }
 
 .spin-btn {
@@ -318,72 +249,52 @@
   text-align: center;
 }
 
-/* Match editor preview sizing to avoid oversized wheel on routes */
-.preview-stage {
-  position: relative;
-  width: min(420px, 90vw);
-  aspect-ratio: 1 / 1;
-  height: auto;
-}
-
-/* Ensure route wheel takes the stage size (overrides generic .wheel) */
-.wheel.preview-wheel {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  position: relative;
-  will-change: transform;
-  transform-origin: 50% 50%;
-  transform-box: fill-box;
-  z-index: 1;
-}
-
-/* Pointer already matches editor */
-.pointer {
-  position: absolute;
-  right: -8px;
-  top: 50%;
-  transform: translateY(-50%); /* match editor preview */
-  width: 0;
-  height: 0;
-  border-top: 12px solid transparent;
-  border-bottom: 12px solid transparent;
-  border-left: 22px solid #e53935; /* match editor preview */
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15)); /* match editor preview */
-  pointer-events: none;
-}
-
-/* Tablet */
-@media (max-width: 1024px) {
-  .preview-stage {
-    width: min(360px, 88vw);
-  }
-}
-
-/* Mobile */
+/* Responsive */
 @media (max-width: 768px) {
-  .preview-stage {
-    width: min(320px, 90vw);
+  .entry-form-wrapper {
+    border-radius: 16px;
   }
+
+  .wheel-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .back-to-dashboard {
+    width: 100%;
+    text-align: center;
+  }
+
+  .wheel-wrapper {
+    border-radius: 16px;
+  }
+
   .pointer {
     right: -6px;
+    border-left-width: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .entry-form-wrapper {
+    border-radius: 14px;
+    padding: clamp(18px, 7vw, 26px);
+  }
+
+  .wheel-container {
+    padding: clamp(16px, 6vw, 24px);
+  }
+
+  .wheel {
+    width: min(92vw, 320px);
+    height: min(92vw, 320px);
+  }
+
+  .pointer {
     border-top-width: 10px;
     border-bottom-width: 10px;
     border-left-width: 18px;
-    transform: rotate(180deg);
   }
 }
-
-/* Small phones */
-@media (max-width: 480px) {
-  .preview-stage {
-    width: min(300px, 94vw);
-  }
-  .pointer {
-    right: -4px;
-    border-top-width: 8px;
-    border-bottom-width: 8px;
-    border-left-width: 15px;
-  }
-}
-
+  
