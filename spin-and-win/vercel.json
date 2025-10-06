@@ -9,8 +9,6 @@
   ],
   "routes": [
     { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/" }
-  ],
-  "cleanUrls": true,
-  "trailingSlash": false
+    { "src": "/(.*)", "dest": "/" }
+  ]
 }
