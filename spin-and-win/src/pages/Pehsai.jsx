@@ -47,27 +47,8 @@ export default function Pehsai() {
     e.target.value = '';
   };
 
-  const pickSpin = useCallback(() => {
-    if (spinning || names.length === 0) return;
-    setWinner(null);
-    setSpinning(true);
-
-    const winIndex = Math.floor(Math.random() * names.length);
-    // Center of the target segment (0deg is at the right, where pointer sits)
-    const targetCenterDeg = winIndex * segAngle + segAngle / 2;
-    // Rotate wheel so targetCenterDeg aligns with 0deg (pointer at right)
-    baseTurnsRef.current += 5; // at least 5 full rotations for drama
-    const targetRotation = baseTurnsRef.current * 360 + (360 - targetCenterDeg);
-    setRotation(targetRotation);
-
-    // Fallback: ensure onSpinEnd runs even if transitionend is missed
-    if (spinTimerRef.current) clearTimeout(spinTimerRef.current);
-    spinTimerRef.current = setTimeout(() => {
-      onSpinEnd();
-    }, 4500 + 120); // CSS duration 4.5s + small buffer
-  }, [names.length, segAngle, spinning]);
-
-  const onSpinEnd = () => {
+  // Define onSpinEnd before pickSpin to avoid no-use-before-define, and memoize it
+  const onSpinEnd = useCallback(() => {
     // Guard: run only once per spin
     if (!spinning) return;
 
@@ -86,7 +67,29 @@ export default function Pehsai() {
     setSpinning(false);
     // Prevent unbounded growth
     baseTurnsRef.current = Math.floor(rotation / 360);
-  };
+  }, [spinning, rotation, segAngle, names]);
+
+  const pickSpin = useCallback(() => {
+    if (spinning || names.length === 0) return;
+    setWinner(null);
+    setSpinning(true);
+
+    const winIndex = Math.floor(Math.random() * names.length);
+    // Center of the target segment (0deg is at the right, where pointer sits)
+    const targetCenterDeg = winIndex * segAngle + segAngle / 2;
+    // Rotate wheel so targetCenterDeg aligns with 0deg (pointer at right)
+    baseTurnsRef.current += 5; // at least 5 full rotations for drama
+    const targetRotation = baseTurnsRef.current * 360 + (360 - targetCenterDeg);
+    setRotation(targetRotation);
+
+    // Fallback: ensure onSpinEnd runs even if transitionend is missed
+    if (spinTimerRef.current) clearTimeout(spinTimerRef.current);
+    spinTimerRef.current = setTimeout(() => {
+      onSpinEnd();
+    }, 4500 + 120); // CSS duration 4.5s + small buffer
+  }, [names.length, segAngle, spinning, onSpinEnd]);
+
+  // onSpinEnd is memoized above
 
   useEffect(() => {
     return () => {

@@ -64,19 +64,7 @@ function segmentPath(cx, cy, r, startDeg, endDeg) {
   return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
 }
 
-// Weighted random selection based on probabilities
-const pickWeightedIndex = (segments) => {
-  const total = segments.reduce((sum, segment) => sum + (segment.probability || 0), 0);
-  if (total <= 0) return 0;
-  let threshold = Math.random() * total;
-  for (let i = 0; i < segments.length; i += 1) {
-    threshold -= segments[i].probability || 0;
-    if (threshold <= 0) return i;
-  }
-  return segments.length - 1;
-};
-
-const CONFETTI_COLORS = ['#f87171', '#34d399', '#60a5fa', '#fbbf24', '#a855f7', '#f97316'];
+// (removed unused helpers)
 
 export default function CustomWheel() {
   const { routeName } = useParams();
