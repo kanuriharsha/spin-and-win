@@ -135,7 +135,8 @@
     border-top: 10px solid transparent;
     border-bottom: 10px solid transparent;
     border-left: 18px solid #e53935;
-    transform: rotate(180deg); /* rotates the pointer */
+    /* transform: rotate(180deg); rotates the pointer */
+    transform: translateY(-50%) rotate(180deg);
   }
 }
 

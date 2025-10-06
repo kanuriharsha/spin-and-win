@@ -14,6 +14,13 @@ const WheelSchema = new mongoose.Schema(
       trim: true,
       lowercase: true
     },
+    // New: wheel description (shown as subheading on route page)
+    description: {
+      type: String,
+      default: '',
+      trim: true,
+      maxlength: 500
+    },
     segments: [{
       text: { type: String, required: true },
       color: { type: String, required: true },
@@ -30,6 +37,10 @@ const WheelSchema = new mongoose.Schema(
       }]
     }],
     centerImage: { type: String }, // Base64 encoded image data
+    // New: wheel background color
+    wheelBackgroundColor: { type: String, default: '#ffffff' },
+    // New: container (wrapper) background color
+    wrapperBackgroundColor: { type: String, default: '#ffffff' },
     // New: persisted center image radius (SVG units, default matches current UI)
     centerImageRadius: { type: Number, min: 20, max: 160, default: 70 },
     // New: editor-configurable spin animation config

@@ -53,8 +53,16 @@ export default function WheelPreview({ wheelData }) {
 
   return (
     <div className="wheel-preview-container">
-      <div className="wheel-wrapper">
-        <div className="preview-stage">
+      <div
+        className="wheel-wrapper"
+        // Use container (wrapper) color here
+        style={{ backgroundColor: wheelData?.wrapperBackgroundColor || '#ffffff' }}
+      >
+        <div
+          className="preview-stage"
+          // New: wheel (inner stage) background color
+          style={{ backgroundColor: wheelData?.wheelBackgroundColor || '#ffffff' }}
+        >
           <div
             className="preview-wheel"
             style={{

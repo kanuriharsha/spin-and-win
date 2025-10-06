@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
-// ✅ API base from env → localhost in dev → same-origin in prod
+// ✅ Prefer localhost:5000, else REACT_APP_API_URL, else localhost:5000
 const API_URL =
-  (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim()) ||
-  ((typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' ||
-     window.location.hostname === '127.0.0.1' ||
-     window.location.hostname === '::1'))
+  ((typeof window !== 'undefined') &&
+   (window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '::1'))
     ? 'http://localhost:5000'
-    : '');
+    : (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim()) || 'http://localhost:5000';
 
 export default function Dashboard() {
   const [wheels, setWheels] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const hydratedRef = useRef(new Set());
 
   useEffect(() => {
     // Fetch saved wheels from the backend
@@ -30,6 +30,34 @@ export default function Dashboard() {
         setLoading(false);
       });
   }, []);
+
+  // Hydrate centerImage for cards that don't have it
+  useEffect(() => {
+    const toLoad = wheels.filter(w => w?._id && !w.centerImage && !hydratedRef.current.has(w._id));
+    if (!toLoad.length) return;
+
+    (async () => {
+      await Promise.all(
+        toLoad.map(async (w) => {
+          try {
+            const res = await fetch(`${API_URL}/api/wheels/${w._id}`);
+            if (!res.ok) return;
+            const full = await res.json();
+            hydratedRef.current.add(w._id);
+            setWheels(prev =>
+              prev.map(x =>
+                x._id === w._id
+                  ? { ...x, centerImage: full.centerImage, centerImageRadius: full.centerImageRadius }
+                  : x
+              )
+            );
+          } catch (e) {
+            console.warn('Hydrate wheel failed:', w._id, e);
+          }
+        })
+      );
+    })();
+  }, [wheels]);
 
   const createNewWheel = () => {
     navigate('/editor');
@@ -72,16 +100,37 @@ export default function Dashboard() {
           wheels.map(wheel => (
             <div className="wheel-card" key={wheel._id}>
               <Link to={`/editor/${wheel._id}`} className="wheel-link">
-                <div className="wheel-preview">
+                <div
+                  className="wheel-preview"
+                  style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', background: '#f3f4f6' }}
+                >
                   {wheel.centerImage ? (
-                    <img 
-                      src={wheel.centerImage} 
-                      alt="Wheel center" 
-                      className="wheel-thumbnail"
+                    <div
+                      className="wheel-cover"
+                      role="img"
+                      aria-label={`${wheel.name} theme`}
+                      style={{
+                        width: '100%',
+                        paddingTop: '52%', // ~16:9 cover
+                        backgroundImage: `url(${wheel.centerImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }}
                     />
                   ) : (
-                    <div className="wheel-thumbnail-placeholder">
-                      {wheel.name.charAt(0)}
+                    <div
+                      className="wheel-thumbnail-placeholder"
+                      style={{
+                        display: 'grid',
+                        placeItems: 'center',
+                        height: 160,
+                        background: '#f1f5f9',
+                        color: '#1f2937',
+                        fontWeight: 700,
+                        borderRadius: 12
+                      }}
+                    >
+                      {wheel.name?.trim()?.charAt(0) || 'W'}
                     </div>
                   )}
                 </div>
@@ -91,16 +140,16 @@ export default function Dashboard() {
                 </div>
               </Link>
               <div className="wheel-actions">
-                <a 
-                  href={`/${wheel.routeName}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href={`/${wheel.routeName}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="view-btn"
                 >
                   View
                 </a>
-                <button 
-                  className="delete-btn" 
+                <button
+                  className="delete-btn"
                   onClick={(e) => deleteWheel(wheel._id, e)}
                 >
                   Delete
@@ -113,3 +162,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

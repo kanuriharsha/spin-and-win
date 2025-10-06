@@ -5,17 +5,14 @@ import './Editor.css';
 import WheelPreview from '../components/WheelPreview';
 import FormPreview from '../components/FormPreview';
 
-// ✅ API base from env → localhost in dev → same-origin in prod
+// ✅ Prefer localhost:5000 (when app runs locally), else REACT_APP_API_URL, else localhost:5000
 const API_URL =
-  (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim()) ||
-  ((typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' ||
-     window.location.hostname === '127.0.0.1' ||
-     window.location.hostname === '::1'))
+  ((typeof window !== 'undefined') &&
+   (window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '::1'))
     ? 'http://localhost:5000'
-    : '');
-
-// const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    : (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim()) || 'http://localhost:5000';
 
 const DEFAULT_FORM_CONFIG = {
   enabled: true,
@@ -114,6 +111,8 @@ export default function Editor() {
   const [activeTab, setActiveTab] = useState('wheel');
   const [wheelData, setWheelData] = useState({
     name: 'New Spinning Wheel',
+    // New: description persisted to DB
+    description: '',
     routeName: '',
     segments: [
       { text: 'Prize 1', color: '#e74c3c', image: null, dailyLimit: null, dailyRemaining: null },
@@ -126,7 +125,11 @@ export default function Editor() {
     // New: persisted spin + center image config
     spinDurationSec: null,           // seconds (null => 3–5s random)
     spinBaseTurns: 6,                // full rotations before landing
-    centerImageRadius: 70            // SVG radius for center image
+    centerImageRadius: 70,           // SVG radius for center image
+    // New: wheel background color
+    wheelBackgroundColor: '#ffffff',
+    // New: container (wrapper) background color (persisted)
+    wrapperBackgroundColor: '#ffffff'
   });
   
   const [activeSegmentIndex, setActiveSegmentIndex] = useState(0);
@@ -142,12 +145,17 @@ export default function Editor() {
       .then((data) => {
         setWheelData({
           ...data,
+          // New: fallback if not present
+          description: data.description || '',
           segments: Array.isArray(data.segments) ? data.segments : [],
           formConfig: mergeFormConfig(data.formConfig),
           // safe defaults
           spinDurationSec: (Number.isFinite(data.spinDurationSec) && data.spinDurationSec >= 1 && data.spinDurationSec <= 60) ? data.spinDurationSec : null,
           spinBaseTurns: Math.max(1, Math.min(20, Math.floor(Number(data.spinBaseTurns ?? 6)))),
-          centerImageRadius: Math.max(20, Math.min(160, Math.floor(Number(data.centerImageRadius ?? 70))))
+          centerImageRadius: Math.max(20, Math.min(160, Math.floor(Number(data.centerImageRadius ?? 70)))),
+          // New: fallbacks
+          wheelBackgroundColor: data.wheelBackgroundColor || '#ffffff',
+          wrapperBackgroundColor: data.wrapperBackgroundColor || '#ffffff'
         });
         setActiveSegmentIndex(0);
       })
@@ -377,6 +385,15 @@ export default function Editor() {
             className="wheel-name-input"
             placeholder="Wheel Name"
           />
+          {/* New: wheel description field */}
+          <input
+            type="text"
+            value={wheelData.description}
+            onChange={(e) => setWheelData({ ...wheelData, description: e.target.value })}
+            className="wheel-name-input"
+            placeholder="Wheel Description (shown under the heading)"
+            style={{ marginTop: 8 }}
+          />
         </div>
         <div className="editor-actions">
           <button className="back-btn" onClick={() => navigate('/dashboard')}>
@@ -407,8 +424,37 @@ export default function Editor() {
         {activeTab === 'wheel' ? (
           <>
             <div className="left-panel">
-              <WheelPreview wheelData={wheelData} />
-              
+              {/* New: wrap preview with background color */}
+              <div style={{ backgroundColor: wheelData.wheelBackgroundColor, borderRadius: 12, padding: 12 }}>
+                <WheelPreview wheelData={wheelData} />
+              </div>
+
+              {/* New: Wheel Background control */}
+              <div className="center-image-control">
+                <h3>Wheel Background</h3>
+                <div className="form-group">
+                  <label>Background Color</label>
+                  <input
+                    type="color"
+                    value={wheelData.wheelBackgroundColor || '#ffffff'}
+                    onChange={(e) => setWheelData(prev => ({ ...prev, wheelBackgroundColor: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              {/* New: Container (wheel-wrapper) Background control */}
+              <div className="center-image-control">
+                <h3>Container Background</h3>
+                <div className="form-group">
+                  <label>Container Color</label>
+                  <input
+                    type="color"
+                    value={wheelData.wrapperBackgroundColor || '#ffffff'}
+                    onChange={(e) => setWheelData(prev => ({ ...prev, wrapperBackgroundColor: e.target.value }))}
+                  />
+                </div>
+              </div>
+
               <div className="center-image-control">
                 <h3>Wheel Center Image</h3>
                 {wheelData.centerImage ? (
@@ -948,6 +994,9 @@ export default function Editor() {
 //           </div>
 //         </div>
 //       )}
+//     </div>
+//   );
+// }
 //     </div>
 //   );
 // }

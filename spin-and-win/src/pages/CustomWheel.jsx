@@ -2,17 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import './CustomWheel.css';
 
-// ✅ API base from env → localhost in dev → same-origin in prod
+// ✅ Prefer localhost:5000, else REACT_APP_API_URL, else localhost:5000
 const API_URL =
-  (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim()) ||
-  ((typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' ||
-     window.location.hostname === '127.0.0.1' ||
-     window.location.hostname === '::1'))
+  ((typeof window !== 'undefined') &&
+   (window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '::1'))
     ? 'http://localhost:5000'
-    : '');
-
-// const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    : (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim()) || 'http://localhost:5000';
 
 const DEFAULT_FORM_CONFIG = {
   enabled: true,
@@ -476,12 +473,23 @@ export default function CustomWheel() {
   return (
     <div className="custom-wheel-page">
       <header className="wheel-header">
-        <h1>{wheelData.name}</h1>
-        <Link to="/dashboard" className="back-to-dashboard">Back to Dashboard</Link>
+        <div className="wheel-title">
+          <h1>{wheelData.name}</h1>
+          {wheelData.description?.trim() ? (
+            <p className="wheel-subheading">
+              {wheelData.description}
+            </p>
+          ) : null}
+        </div>
+        {/* <Link to="/dashboard" className="back-to-dashboard">Back to Dashboard</Link> */}
       </header>
 
       <div className="wheel-container">
-        <div className="wheel-wrapper">
+        <div
+          className="wheel-wrapper"
+          // Use container (wrapper) color here
+          style={{ backgroundColor: (wheelData && wheelData.wrapperBackgroundColor) || '#fff' }}
+        >
           <div className="wheel-stage preview-stage">
             <div
               className="wheel preview-wheel"
@@ -734,6 +742,9 @@ export default function CustomWheel() {
 // }
 //       </div>
 //     </div>
+//   );
+// }
+// }
 //   );
 // }
 // }

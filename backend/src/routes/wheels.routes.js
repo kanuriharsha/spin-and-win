@@ -214,6 +214,18 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
+// New: sanitize short free-text (trim + clamp length)
+function sanitizeShortText(value, max = 500) {
+  const s = String(value ?? '').trim();
+  return s.length > max ? s.slice(0, max) : s;
+}
+
+// New: sanitize hex color (#RRGGBB), else fallback
+function sanitizeColor(value, fallback = '#ffffff') {
+  const s = String(value || '').trim();
+  return /^#[0-9a-fA-F]{6}$/.test(s) ? s : fallback;
+}
+
 // Create
 router.post('/', async (req, res, next) => {
   try {
@@ -228,11 +240,16 @@ router.post('/', async (req, res, next) => {
     const wheel = await Wheel.create({
       ...req.body,
       routeName,
+      // New: persist sanitized description
+      description: sanitizeShortText(req.body.description, 500),
       segments: preparedSegments,
       formConfig: mergeFormConfig(req.body.formConfig),
       spinDurationSec: sanitizeSpinDurationSec(req.body.spinDurationSec),
       spinBaseTurns: sanitizeSpinBaseTurns(req.body.spinBaseTurns),
-      centerImageRadius: sanitizeCenterImageRadius(req.body.centerImageRadius)
+      centerImageRadius: sanitizeCenterImageRadius(req.body.centerImageRadius),
+      // New: persist sanitized colors
+      wheelBackgroundColor: sanitizeColor(req.body.wheelBackgroundColor, '#ffffff'),
+      wrapperBackgroundColor: sanitizeColor(req.body.wrapperBackgroundColor, '#ffffff')
     });
     res.status(201).json(wheel);
   } catch (err) {
@@ -292,6 +309,15 @@ router.put('/:id', async (req, res, next) => {
       updateDoc.spinBaseTurns = sanitizeSpinBaseTurns(req.body.spinBaseTurns);
     if ('centerImageRadius' in req.body)
       updateDoc.centerImageRadius = sanitizeCenterImageRadius(req.body.centerImageRadius);
+    // New: description optional update
+    if ('description' in req.body)
+      updateDoc.description = sanitizeShortText(req.body.description, 500);
+
+    // New: optional color updates (keep previous if invalid)
+    if ('wheelBackgroundColor' in req.body)
+      updateDoc.wheelBackgroundColor = sanitizeColor(req.body.wheelBackgroundColor, existing.wheelBackgroundColor || '#ffffff');
+    if ('wrapperBackgroundColor' in req.body)
+      updateDoc.wrapperBackgroundColor = sanitizeColor(req.body.wrapperBackgroundColor, existing.wrapperBackgroundColor || '#ffffff');
 
     const updatedWheel = await Wheel.findByIdAndUpdate(req.params.id, updateDoc, { new: true });
     res.json(updatedWheel);
