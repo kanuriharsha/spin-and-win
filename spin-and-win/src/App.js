@@ -11,7 +11,7 @@ function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        // <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/pehsai" element={<Pehsai />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/editor" element={<Editor />} />
