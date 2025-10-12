@@ -502,4 +502,34 @@
   to   { transform: translateY(0) scale(1); opacity: 1; }
 }
 
+/* Hero Banner Styles */
+.hero-banner {
+  margin: 10px 15px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+  .hero-banner {
+    margin: 10px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-banner {
+    margin: 10px;
+    border-radius: 10px;
+  }
+  
+  .entry-form-wrapper {
+    padding: clamp(20px, 5vw, 32px);
+  }
+}
+
+/* Ensure smooth transition from banner to form */
+.entry-form-wrapper .form-header {
+  margin-top: 0;
+}
+
 

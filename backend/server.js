@@ -54,6 +54,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/spins', require('./src/routes/spins.routes'));
 app.use('/api/wheels', require('./src/routes/wheels.routes'));
 app.use('/api/spin-results', require('./src/routes/spinResults.routes'));
+app.use('/api/auth', require('./src/routes/auth.routes'));
 
 // Server & DB
 const PORT = process.env.PORT || 5000;

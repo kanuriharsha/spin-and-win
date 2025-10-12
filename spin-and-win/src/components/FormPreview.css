@@ -140,6 +140,11 @@
   line-height: 1.6;
 }
 
+/* Hero Banner Preview */
+.hero-banner-preview {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 @media (max-width: 520px) {
   .form-preview {
     padding: 22px 18px;
@@ -151,5 +156,12 @@
 
   .privacy-modal {
     margin: 0;
+  }
+
+  .hero-banner-preview {
+    height: 200px !important;
+    margin-left: -18px !important;
+    margin-top: -22px !important;
+    width: calc(100% + 36px) !important;
   }
 }

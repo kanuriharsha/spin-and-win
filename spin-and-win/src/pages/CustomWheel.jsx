@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import NotFound from './NotFound';
 import './CustomWheel.css';
 
 // ✅ Prefer localhost:5000, else REACT_APP_API_URL, else localhost:5000
@@ -15,6 +16,14 @@ const DEFAULT_FORM_CONFIG = {
   enabled: true,
   title: 'Enter Your Details',
   subtitle: 'Please fill in your information to spin the wheel',
+  introText: '',
+  heroBanner: {
+    enabled: false,
+    image: '',
+    text: 'Welcome to Our Restaurant 🍽️ Spin & Win Your Reward!',
+    textColor: '#ffffff',
+    overlayOpacity: 0.4
+  },
   fields: {
     surname: { enabled: true, label: 'Surname/Initial', required: true },
     name: { enabled: true, label: 'Full Name', required: true },
@@ -34,6 +43,11 @@ const DEFAULT_FORM_CONFIG = {
 const mergeFormConfig = (incoming = {}) => ({
   ...DEFAULT_FORM_CONFIG,
   ...incoming,
+  introText: incoming.introText !== undefined ? incoming.introText : DEFAULT_FORM_CONFIG.introText,
+  heroBanner: {
+    ...DEFAULT_FORM_CONFIG.heroBanner,
+    ...(incoming.heroBanner || {})
+  },
   fields: {
     ...DEFAULT_FORM_CONFIG.fields,
     ...(incoming.fields || {}),
@@ -78,6 +92,7 @@ export default function CustomWheel() {
     name: '',
     amountSpent: '',
     privacyAccepted: false
+    // Custom fields will be added dynamically
   });
   const [formErrors, setFormErrors] = useState({});
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -126,20 +141,29 @@ export default function CustomWheel() {
     evt.preventDefault();
     if (!validateForm()) return;
     try {
+      const payload = {
+        wheelId: wheelData._id,
+        routeName,
+        surname: formData.surname.trim(),
+        name: formData.name.trim(),
+        amountSpent: formData.amountSpent.trim()
+      };
+      
+      // New: add custom field values
+      (wheelData.formConfig.customFields || []).forEach(field => {
+        if (field.enabled) {
+          payload[field.id] = (formData[field.id] || '').trim();
+        }
+      });
+
       const response = await fetch(`${API_URL}/api/spin-results/session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          wheelId: wheelData._id,
-          routeName,
-          surname: formData.surname.trim(),
-          name: formData.name.trim(),
-          amountSpent: formData.amountSpent.trim()
-        })
+        body: JSON.stringify(payload)
       });
       if (!response.ok) throw new Error(await response.text());
-      const payload = await response.json();
-      setSessionId(payload.sessionId);
+      const data = await response.json();
+      setSessionId(data.sessionId);
       setShowForm(false);
       setWinner(null);
       setHasSpun(false);
@@ -156,6 +180,7 @@ export default function CustomWheel() {
     if (!wheelData?.formConfig) return true;
     const config = wheelData.formConfig.fields;
     const errors = {};
+    
     if (config.surname.enabled && config.surname.required && !formData.surname.trim()) {
       errors.surname = `${config.surname.label} is required`;
     }
@@ -169,6 +194,14 @@ export default function CustomWheel() {
         errors.amountSpent = 'Please enter the amount spent on food';
       }
     }
+    
+    // New: validate custom fields
+    (wheelData.formConfig.customFields || []).forEach(field => {
+      if (field.enabled && field.required && !String(formData[field.id] || '').trim()) {
+        errors[field.id] = `${field.label} is required`;
+      }
+    });
+    
     if (config.privacyPolicy.enabled && !formData.privacyAccepted) {
       errors.privacyAccepted = 'Please accept the privacy policy to continue';
     }
@@ -202,7 +235,36 @@ export default function CustomWheel() {
     }
   };
 
-  // New: perform the actual spin (shared by button and modal confirm)
+  // Ensure a session exists even when the form is disabled
+  const ensureSession = useRef(null);
+  ensureSession.current = async () => {
+    if (sessionId) return sessionId;
+    if (!wheelData?._id) return null;
+
+    try {
+      const res = await fetch(`${API_URL}/api/spin-results/session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wheelId: wheelData._id,
+          routeName,
+          // optional when form disabled:
+          surname: (formData.surname || tempSurname || '').trim(),
+          name: (formData.name || tempName || '').trim(),
+          amountSpent: (formData.amountSpent || '').trim()
+        })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setSessionId(data.sessionId);
+      return data.sessionId;
+    } catch (e) {
+      console.error('Failed to create session:', e);
+      return null;
+    }
+  };
+
+  // Perform the actual spin (server-first)
   const startSpin = async () => {
     if (spinning || hasSpun || !wheelData?.segments?.length) return;
     const segments = wheelData.segments;
@@ -216,13 +278,19 @@ export default function CustomWheel() {
     setShowWinnerModal(false);
     setSpinning(true);
 
-    // Prefer server spin (rules + limits)
     let winIndex;
-    if (sessionId) {
+
+    // Always prefer server spin; create a session if needed
+    let sid = sessionId;
+    if (!sid) {
+      sid = await ensureSession.current();
+    }
+
+    if (sid) {
       try {
         const res = await fetch(`${API_URL}/api/wheels/${wheelData._id}/spin`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-session-id': sessionId }
+          headers: { 'Content-Type': 'application/json', 'x-session-id': sid }
         });
         if (!res.ok) {
           const msg = await res.text();
@@ -237,7 +305,7 @@ export default function CustomWheel() {
         return;
       }
     } else {
-      // Client pick when no session (rules can't apply without amount)
+      // Fallback to client pick (rare)
       const total = segments.reduce((sum, s) => sum + (s.probability || 0), 0);
       if (total > 0) {
         let threshold = Math.random() * total;
@@ -252,10 +320,9 @@ export default function CustomWheel() {
     }
 
     const targetCenter = winIndex * segAngle + segAngle / 2;
-    baseTurnsRef.current += baseTurnsCfg; // use DB-configured base rotations
+    baseTurnsRef.current += baseTurnsCfg;
     setRotation(baseTurnsRef.current * 360 + (360 - targetCenter));
 
-    // Fallback timer to ensure onSpinEnd fires
     if (spinTimerRef.current) clearTimeout(spinTimerRef.current);
     spinTimerRef.current = setTimeout(() => {
       onSpinEnd();
@@ -263,16 +330,7 @@ export default function CustomWheel() {
   };
 
   const handleSpin = () => {
-    // If the form is disabled and we don't have a name/surname, ask before spinning
-    const needNamePopup =
-      !wheelData?.formConfig?.enabled &&
-      (!formData.name?.trim() || !formData.surname?.trim());
-    if (needNamePopup) {
-      setTempName('');
-      setTempSurname('');
-      setShowNameModal(true);
-      return;
-    }
+    // When form is disabled, spin immediately without prompting for details
     startSpin();
   };
 
@@ -293,9 +351,12 @@ export default function CustomWheel() {
     const normalized = ((rotation % 360) + 360) % 360;
     const pointerAngle = (360 - normalized) % 360;
     const index = Math.floor(pointerAngle / segAngle) % segments.length;
-    const prize = segments[index]?.text || null;
+    const segment = segments[index];
+    const prizeText = segment?.text || null;
+    const prizeAmount = segment?.amount || '';
+    const prizeType = segment?.prizeType || 'other';
 
-    setWinner(prize);
+    setWinner({ text: prizeText, amount: prizeAmount, type: prizeType });
     setSpinning(false);
     setHasSpun(true);
     setShowWinnerModal(true);
@@ -304,12 +365,16 @@ export default function CustomWheel() {
     // Play happy sound
     playYay();
 
-    if (sessionId && prize) {
+    if (sessionId && prizeText) {
       try {
         await fetch(`${API_URL}/api/spin-results/session/${sessionId}/result`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ winner: prize })
+          body: JSON.stringify({ 
+            winner: prizeText,
+            prizeType: prizeType,
+            prizeAmount: prizeAmount
+          })
         });
       } catch (err) {
         console.error('Failed to log spin result:', err);
@@ -328,13 +393,7 @@ export default function CustomWheel() {
   }
 
   if (error) {
-    return (
-      <div className="error-container">
-        <h2>Wheel Not Found</h2>
-        <p>{error}</p>
-        <Link to="/dashboard" className="back-link">Go to Dashboard</Link>
-      </div>
-    );
+    return <NotFound />;
   }
 
   if (showForm && wheelData.formConfig?.enabled) {
@@ -346,10 +405,67 @@ export default function CustomWheel() {
           style={{ backgroundColor: config.backgroundColor, color: config.textColor }}
         >
           <div className="entry-form-wrapper">
+            {/* New: Hero Banner */}
+            {config.heroBanner?.enabled && config.heroBanner?.image && (
+              <div className="hero-banner" style={{
+                position: 'relative',
+                width: 'calc(100% + clamp(48px, 12vw, 80px))',
+                marginLeft: 'calc(-1 * clamp(24px, 6vw, 40px))',
+                marginTop: 'calc(-1 * clamp(24px, 6vw, 40px))',
+                marginBottom: 'clamp(24px, 6vw, 32px)',
+                height: 'clamp(220px, 60vw, 280px)',
+                borderRadius: 'clamp(18px, 4vw, 18px) clamp(18px, 4vw, 18px) 0 0',
+                overflow: 'hidden',
+                backgroundImage: `url(${config.heroBanner.image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: `rgba(0, 0, 0, ${config.heroBanner.overlayOpacity ?? 0.4})`
+                }} />
+                <div style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  color: config.heroBanner.textColor || '#ffffff',
+                  fontSize: 'clamp(20px, 6vw, 28px)',
+                  fontWeight: 700,
+                  textAlign: 'center',
+                  padding: '0 clamp(16px, 4vw, 24px)',
+                  textShadow: '0 2px 12px rgba(0, 0, 0, 0.6)',
+                  lineHeight: 1.3,
+                  maxWidth: '90%'
+                }}>
+                  {config.heroBanner.text || 'Welcome to Our Restaurant 🍽️'}
+                </div>
+              </div>
+            )}
+
             <div className="form-header">
               <h1>{config.title}</h1>
               <p>{config.subtitle}</p>
             </div>
+            
+            {/* Display intro text if present */}
+            {config.introText && (
+              <div className="form-intro-text" style={{ 
+                padding: '14px 18px', 
+                marginBottom: '20px', 
+                backgroundColor: 'rgba(37, 99, 235, 0.1)', 
+                borderLeft: '4px solid #2563eb',
+                borderRadius: '6px',
+                fontSize: 'clamp(14px, 3.5vw, 15px)',
+                lineHeight: '1.6',
+                color: config.textColor || '#2c3e50'
+              }}>
+                {config.introText}
+              </div>
+            )}
+            
             <form className="entry-form" onSubmit={submitForm}>
               {config.fields.surname.enabled && (
                 <div className={`form-field ${formErrors.surname ? 'error' : ''}`}>
@@ -401,6 +517,26 @@ export default function CustomWheel() {
                   {formErrors.amountSpent && <span className="error-message">{formErrors.amountSpent}</span>}
                 </div>
               )}
+
+              {/* New: Render custom fields */}
+              {(config.customFields || []).map((customField) => 
+                customField.enabled && (
+                  <div className={`form-field ${formErrors[customField.id] ? 'error' : ''}`} key={customField.id}>
+                    <label>
+                      {customField.label}
+                      {customField.required && <span className="required">*</span>}
+                    </label>
+                    <input
+                      type={customField.type}
+                      value={formData[customField.id] || ''}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, [customField.id]: e.target.value }))}
+                      placeholder={customField.placeholder || `Enter ${customField.label.toLowerCase()}`}
+                    />
+                    {formErrors[customField.id] && <span className="error-message">{formErrors[customField.id]}</span>}
+                  </div>
+                )
+              )}
+
               {config.fields.privacyPolicy.enabled && (
                 <div className="form-field privacy-field">
                   <label className="checkbox-label">
@@ -576,7 +712,8 @@ export default function CustomWheel() {
             {spinning ? 'Spinning...' : hasSpun ? 'Already Spun' : 'SPIN'}
           </button>
           <div className="winner-banner" role="status">
-            Winner: <strong>{winner || '-'}</strong>
+            Winner: <strong>{winner?.text || '-'}</strong>
+            {winner?.amount && <span> • {winner.amount}</span>}
           </div>
         </div>
       </div>
@@ -677,8 +814,13 @@ export default function CustomWheel() {
 
             <div className="winner-toast-body">
               <div className="winner-name">
-                {winner || '—'}
+                {winner?.text || '—'}
               </div>
+              {/* {winner?.amount && (
+                <div className="winner-amount" style={{ fontSize: '1.1rem', color: '#fbbf24', marginTop: '8px', fontWeight: 600 }}>
+                  {winner.amount}
+                </div>
+              )} */}
               <div className="winner-subtext">
                 <b>Thank you for availing the offer 🙏🏼 We hope to see you again!</b>
               </div>

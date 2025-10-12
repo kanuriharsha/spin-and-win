@@ -7,7 +7,7 @@ export default function Navbar() {
   
   // Don't show navbar on custom wheel pages (routes with just one segment after the slash)
   const pathParts = location.pathname.split('/').filter(Boolean);
-  if (pathParts.length === 1 && !['dashboard', 'pehsai', 'editor'].includes(pathParts[0])) {
+  if (pathParts.length === 1 && !['dashboard', 'editor'].includes(pathParts[0])) {
     return null;
   }
 
@@ -31,14 +31,14 @@ export default function Navbar() {
           >
             Create New Wheel
           </Link>
-          <Link 
-            to="/pehsai" 
-            className={`nav-link ${location.pathname === '/pehsai' ? 'active' : ''}`}
-          >
-            Basic Wheel
-          </Link>
         </div>
       </div>
     </nav>
   );
 }
+//           </Link>
+//         </div>
+//       </div>
+//     </nav>
+//   );
+// }

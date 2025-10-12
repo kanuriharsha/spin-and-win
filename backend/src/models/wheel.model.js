@@ -25,6 +25,9 @@ const WheelSchema = new mongoose.Schema(
       text: { type: String, required: true },
       color: { type: String, required: true },
       image: { type: String }, // Base64 encoded image data
+      // Prize details
+      prizeType: { type: String, enum: ['cash', 'loyalty', 'other'], default: 'other' },
+      amount: { type: String, default: '' }, // e.g., "₹500", "30 Loyalty Points", or any custom text
       // New: per-day occurrence limiting
       dailyLimit: { type: Number, default: null }, // null/undefined => unlimited
       dailyRemaining: { type: Number, default: null }, // null when unlimited
@@ -51,6 +54,16 @@ const WheelSchema = new mongoose.Schema(
       enabled: { type: Boolean, default: true },
       title: { type: String, default: 'Enter Your Details' },
       subtitle: { type: String, default: 'Please fill in your information to spin the wheel' },
+      // New: intro text shown above form fields
+      introText: { type: String, default: '' },
+      // New: hero banner configuration
+      heroBanner: {
+        enabled: { type: Boolean, default: false },
+        image: { type: String, default: '' }, // Base64 image
+        text: { type: String, default: 'Welcome to Our Restaurant 🍽️ Spin & Win Your Reward!' },
+        textColor: { type: String, default: '#ffffff' },
+        overlayOpacity: { type: Number, default: 0.4, min: 0, max: 1 }
+      },
       fields: {
         surname: {
           enabled: { type: Boolean, default: true },
@@ -76,6 +89,15 @@ const WheelSchema = new mongoose.Schema(
           }
         }
       },
+      // New: array of custom fields
+      customFields: [{
+        id: { type: String, required: true },
+        label: { type: String, required: true },
+        type: { type: String, enum: ['text', 'number', 'email', 'tel'], default: 'text' },
+        enabled: { type: Boolean, default: true },
+        required: { type: Boolean, default: false },
+        placeholder: { type: String, default: '' }
+      }],
       submitButtonText: { type: String, default: 'Next' },
       backgroundColor: { type: String, default: '#ffffff' },
       textColor: { type: String, default: '#2c3e50' },

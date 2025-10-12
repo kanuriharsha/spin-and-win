@@ -18,6 +18,14 @@ const DEFAULT_FORM_CONFIG = {
   enabled: true,
   title: 'Enter Your Details',
   subtitle: 'Please fill in your information to spin the wheel',
+  introText: '',
+  heroBanner: {
+    enabled: false,
+    image: '',
+    text: 'Welcome to Our Restaurant 🍽️ Spin & Win Your Reward!',
+    textColor: '#ffffff',
+    overlayOpacity: 0.4
+  },
   fields: {
     surname: { enabled: true, label: 'Surname/Initial', required: true },
     name: { enabled: true, label: 'Full Name', required: true },
@@ -28,6 +36,7 @@ const DEFAULT_FORM_CONFIG = {
       policyText: 'Your privacy is important to us. We collect and use your information only for the purpose of this promotion.'
     }
   },
+  customFields: [],
   submitButtonText: 'Next',
   backgroundColor: '#ffffff',
   textColor: '#2c3e50',
@@ -37,6 +46,11 @@ const DEFAULT_FORM_CONFIG = {
 const mergeFormConfig = (incoming = {}) => ({
   ...DEFAULT_FORM_CONFIG,
   ...incoming,
+  introText: incoming.introText !== undefined ? incoming.introText : DEFAULT_FORM_CONFIG.introText,
+  heroBanner: {
+    ...DEFAULT_FORM_CONFIG.heroBanner,
+    ...(incoming.heroBanner || {})
+  },
   fields: {
     ...DEFAULT_FORM_CONFIG.fields,
     ...(incoming.fields || {}),
@@ -44,7 +58,8 @@ const mergeFormConfig = (incoming = {}) => ({
     name: { ...DEFAULT_FORM_CONFIG.fields.name, ...(incoming.fields?.name || {}) },
     amountSpent: { ...DEFAULT_FORM_CONFIG.fields.amountSpent, ...(incoming.fields?.amountSpent || {}) },
     privacyPolicy: { ...DEFAULT_FORM_CONFIG.fields.privacyPolicy, ...(incoming.fields?.privacyPolicy || {}) }
-  }
+  },
+  customFields: Array.isArray(incoming.customFields) ? incoming.customFields : []
 });
 
 // Helper: convert File -> dataURL
@@ -115,10 +130,10 @@ export default function Editor() {
     description: '',
     routeName: '',
     segments: [
-      { text: 'Prize 1', color: '#e74c3c', image: null, dailyLimit: null, dailyRemaining: null },
-      { text: 'Prize 2', color: '#27ae60', image: null, dailyLimit: null, dailyRemaining: null },
-      { text: 'Prize 3', color: '#f1c40f', image: null, dailyLimit: null, dailyRemaining: null },
-      { text: 'Prize 4', color: '#3498db', image: null, dailyLimit: null, dailyRemaining: null }
+      { text: 'Prize 1', color: '#e74c3c', image: null, prizeType: 'other', amount: '', dailyLimit: null, dailyRemaining: null },
+      { text: 'Prize 2', color: '#27ae60', image: null, prizeType: 'other', amount: '', dailyLimit: null, dailyRemaining: null },
+      { text: 'Prize 3', color: '#f1c40f', image: null, prizeType: 'other', amount: '', dailyLimit: null, dailyRemaining: null },
+      { text: 'Prize 4', color: '#3498db', image: null, prizeType: 'other', amount: '', dailyLimit: null, dailyRemaining: null }
     ],
     centerImage: null,
     formConfig: DEFAULT_FORM_CONFIG,
@@ -204,6 +219,51 @@ export default function Editor() {
     });
   };
 
+  // New: Add custom field
+  const handleAddCustomField = () => {
+    setWheelData(prev => ({
+      ...prev,
+      formConfig: {
+        ...prev.formConfig,
+        customFields: [
+          ...(prev.formConfig.customFields || []),
+          {
+            id: `custom_${Date.now()}`,
+            label: 'Custom Field',
+            type: 'text',
+            enabled: true,
+            required: false,
+            placeholder: ''
+          }
+        ]
+      }
+    }));
+  };
+
+  // New: Remove custom field
+  const handleRemoveCustomField = (index) => {
+    setWheelData(prev => ({
+      ...prev,
+      formConfig: {
+        ...prev.formConfig,
+        customFields: prev.formConfig.customFields.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  // New: Update custom field
+  const handleCustomFieldChange = (index, field, value) => {
+    setWheelData(prev => ({
+      ...prev,
+      formConfig: {
+        ...prev.formConfig,
+        customFields: prev.formConfig.customFields.map((cf, i) => 
+          i === index ? { ...cf, [field]: value } : cf
+        )
+      }
+    }));
+  };
+
   const handleAddSegment = () => {
     // Generate a color based on the segment index
     const colors = ['#e74c3c', '#27ae60', '#f1c40f', '#3498db', '#9b59b6', '#1abc9c', '#e67e22', '#34495e'];
@@ -213,7 +273,7 @@ export default function Editor() {
       ...wheelData,
       segments: [
         ...wheelData.segments,
-        { text: `Prize ${wheelData.segments.length + 1}`, color: newColor, image: null, dailyLimit: null, dailyRemaining: null }
+        { text: `Prize ${wheelData.segments.length + 1}`, color: newColor, image: null, prizeType: 'other', amount: '', dailyLimit: null, dailyRemaining: null }
       ]
     });
     
@@ -600,6 +660,29 @@ export default function Editor() {
                   </div>
                   
                   <div className="form-group">
+                    <label>Prize Type</label>
+                    <select
+                      value={wheelData.segments[activeSegmentIndex].prizeType || 'other'}
+                      onChange={(e) => handleSegmentChange(activeSegmentIndex, 'prizeType', e.target.value)}
+                    >
+                      <option value="cash">Cash Prize</option>
+                      <option value="loyalty">Loyalty Points</option>
+                      <option value="other">Other Prize</option>
+                    </select>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Amount/Details</label>
+                    <input
+                      type="text"
+                      value={wheelData.segments[activeSegmentIndex].amount || ''}
+                      onChange={(e) => handleSegmentChange(activeSegmentIndex, 'amount', e.target.value)}
+                      placeholder="e.g., ₹500, 30 Loyalty Points"
+                    />
+                    <small>Optional: Specify the prize amount or details (e.g., "₹500" or "30 Loyalty Points")</small>
+                  </div>
+                  
+                  <div className="form-group">
                     <label>Daily Limit (per day, optional)</label>
                     <input
                       type="number"
@@ -774,6 +857,112 @@ export default function Editor() {
                   />
                 </div>
                 
+                {/* New: Intro Text field */}
+                <div className="form-group">
+                  <label>Intro Text (shown above fields)</label>
+                  <textarea
+                    rows={3}
+                    value={wheelData.formConfig.introText || ''}
+                    onChange={(e) => handleFormConfigChange('introText', e.target.value)}
+                    placeholder="Enter intro/mark text to display above form fields (optional)"
+                  />
+                  <small>This text will appear above all form fields</small>
+                </div>
+                
+                {/* New: Hero Banner Section */}
+                <div className="form-group" style={{ marginTop: 24, paddingTop: 24, borderTop: '2px solid #e5e7eb' }}>
+                  <h3 style={{ margin: '0 0 16px 0', color: '#1f2937', fontSize: 18 }}>Hero Banner (Mobile Optimized)</h3>
+                  
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={wheelData.formConfig.heroBanner?.enabled || false}
+                      onChange={(e) => handleFormConfigChange('heroBanner.enabled', e.target.checked)}
+                    />
+                    Enable Hero Banner
+                  </label>
+                  
+                  {wheelData.formConfig.heroBanner?.enabled && (
+                    <>
+                      <div style={{ marginTop: 16 }}>
+                        <label>Banner Text</label>
+                        <input
+                          type="text"
+                          value={wheelData.formConfig.heroBanner?.text || ''}
+                          onChange={(e) => handleFormConfigChange('heroBanner.text', e.target.value)}
+                          placeholder="Welcome to Our Restaurant 🍽️ Spin & Win Your Reward!"
+                        />
+                        <small>Large, bold text displayed over the banner image</small>
+                      </div>
+                      
+                      <div style={{ marginTop: 16 }}>
+                        <label>Text Color</label>
+                        <input
+                          type="color"
+                          value={wheelData.formConfig.heroBanner?.textColor || '#ffffff'}
+                          onChange={(e) => handleFormConfigChange('heroBanner.textColor', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div style={{ marginTop: 16 }}>
+                        <label>Overlay Darkness (0 = transparent, 1 = dark)</label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={wheelData.formConfig.heroBanner?.overlayOpacity ?? 0.4}
+                          onChange={(e) => handleFormConfigChange('heroBanner.overlayOpacity', Number(e.target.value))}
+                        />
+                        <small>{Math.round((wheelData.formConfig.heroBanner?.overlayOpacity ?? 0.4) * 100)}% darkness</small>
+                      </div>
+                      
+                      <div style={{ marginTop: 16 }}>
+                        <label>Banner Image</label>
+                        {wheelData.formConfig.heroBanner?.image ? (
+                          <div className="image-preview-container">
+                            <img 
+                              src={wheelData.formConfig.heroBanner.image} 
+                              alt="Hero Banner" 
+                              className="image-preview"
+                              style={{ maxHeight: 150 }}
+                            />
+                            <button 
+                              className="remove-image-btn" 
+                              onClick={() => handleFormConfigChange('heroBanner.image', '')}
+                            >
+                              Remove Banner Image
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="upload-btn">
+                            Upload Banner Image
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={async (e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                try {
+                                  const compressed = await compressImageToDataURL(file, { maxDim: 1200, targetBytes: 500 * 1024 });
+                                  handleFormConfigChange('heroBanner.image', compressed);
+                                } catch (err) {
+                                  console.error('Image processing failed:', err);
+                                  alert('Failed to process image. Please try a smaller image.');
+                                } finally {
+                                  e.target.value = '';
+                                }
+                              }}
+                              hidden 
+                            />
+                          </label>
+                        )}
+                        <small>Recommended: Wide restaurant/food image (1200x400px)</small>
+                      </div>
+                    </>
+                  )}
+                </div>
+                
                 <div className="form-fields-config">
                   <div className="field-config">
                     <h4>Surname / Initial</h4>
@@ -871,6 +1060,80 @@ export default function Editor() {
                       onChange={(e) => handleFormConfigChange('fields.privacyPolicy.policyText', e.target.value)}
                     />
                   </div>
+                </div>
+
+                {/* New: Custom Fields Section */}
+                <div className="custom-fields-section">
+                  <div className="custom-fields-header">
+                    <h4>Custom Fields</h4>
+                    <button 
+                      type="button"
+                      className="add-segment-btn"
+                      onClick={handleAddCustomField}
+                    >
+                      Add Custom Field
+                    </button>
+                  </div>
+                  
+                  {(wheelData.formConfig.customFields || []).map((customField, index) => (
+                    <div key={customField.id} className="field-config custom-field-item">
+                      <div className="custom-field-header">
+                        <h5>Custom Field {index + 1}</h5>
+                        <button
+                          type="button"
+                          className="remove-segment-btn"
+                          onClick={() => handleRemoveCustomField(index)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={customField.enabled}
+                          onChange={(e) => handleCustomFieldChange(index, 'enabled', e.target.checked)}
+                        />
+                        Enable field
+                      </label>
+                      
+                      <label>Field Label</label>
+                      <input
+                        type="text"
+                        value={customField.label}
+                        onChange={(e) => handleCustomFieldChange(index, 'label', e.target.value)}
+                        placeholder="Enter field label"
+                      />
+                      
+                      <label>Field Type</label>
+                      <select
+                        value={customField.type}
+                        onChange={(e) => handleCustomFieldChange(index, 'type', e.target.value)}
+                      >
+                        <option value="text">Text</option>
+                        <option value="number">Number</option>
+                        <option value="email">Email</option>
+                        <option value="tel">Phone</option>
+                      </select>
+                      
+                      <label>Placeholder</label>
+                      <input
+                        type="text"
+                        value={customField.placeholder || ''}
+                        onChange={(e) => handleCustomFieldChange(index, 'placeholder', e.target.value)}
+                        placeholder="Enter placeholder text"
+                      />
+                      
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={customField.required}
+                          onChange={(e) => handleCustomFieldChange(index, 'required', e.target.checked)}
+                        />
+                        Required
+                      </label>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="form-styling">

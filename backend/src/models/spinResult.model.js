@@ -4,17 +4,18 @@ const SpinResultSchema = new mongoose.Schema(
   {
     wheelId: { type: mongoose.Schema.Types.ObjectId, ref: 'Wheel', required: true },
     routeName: { type: String, required: true },
-    // User form data
-    surname: { type: String, required: true },
-    name: { type: String, required: true },
-    amountSpent: { type: String, required: true },
-    // Timing data
-    inTime: { type: Date, required: true }, // When form was submitted
+    surname: { type: String, default: '' },      // was required: true
+    name: { type: String, default: '' },         // was required: true
+    amountSpent: { type: String, default: '' },  // was required: true
+    // New: store custom field data as key-value pairs
+    customFieldData: { type: Map, of: String, default: {} },
+    inTime: { type: Date, required: true }, // When form was submitted or session created
     outTime: { type: Date }, // When prize was won
-    // Spin result
     winner: { type: String }, // The winning segment text
+    prizeType: { type: String, enum: ['cash', 'loyalty', 'other'], default: 'other' },
+    prizeAmount: { type: String, default: '' }, // e.g., "₹500", "30 Loyalty Points"
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Link to user if loyalty points awarded
     approved: { type: Boolean, default: false },
-    // Additional data
     userAgent: { type: String },
     ipAddress: { type: String },
     sessionId: { type: String }

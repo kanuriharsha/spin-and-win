@@ -32,10 +32,65 @@ export default function FormPreview({ formConfig }) {
           color: formConfig.textColor
         }}
       >
+        {/* New: Hero Banner */}
+        {formConfig.heroBanner?.enabled && formConfig.heroBanner?.image && (
+          <div className="hero-banner-preview" style={{
+            position: 'relative',
+            width: 'calc(100% + 48px)',
+            marginLeft: '-24px',
+            marginTop: '-28px',
+            marginBottom: '24px',
+            height: '240px',
+            borderRadius: '14px 14px 0 0',
+            overflow: 'hidden',
+            backgroundImage: `url(${formConfig.heroBanner.image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: `rgba(0, 0, 0, ${formConfig.heroBanner.overlayOpacity ?? 0.4})`
+            }} />
+            <div style={{
+              position: 'relative',
+              zIndex: 1,
+              color: formConfig.heroBanner.textColor || '#ffffff',
+              fontSize: 'clamp(18px, 5vw, 24px)',
+              fontWeight: 700,
+              textAlign: 'center',
+              padding: '0 20px',
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.5)',
+              lineHeight: 1.3
+            }}>
+              {formConfig.heroBanner.text || 'Welcome to Our Restaurant 🍽️'}
+            </div>
+          </div>
+        )}
+
         <div className="form-header">
           <h2>{formConfig.title}</h2>
           <p>{formConfig.subtitle}</p>
         </div>
+
+        {/* Intro text */}
+        {formConfig.introText && (
+          <div className="form-intro-text" style={{ 
+            padding: '12px 16px', 
+            marginBottom: '16px', 
+            backgroundColor: 'rgba(37, 99, 235, 0.1)', 
+            borderLeft: '4px solid #2563eb',
+            borderRadius: '4px',
+            fontSize: '14px',
+            lineHeight: '1.6',
+            color: formConfig.textColor || '#2c3e50'
+          }}>
+            {formConfig.introText}
+          </div>
+        )}
 
         <form className="entry-form">
           {formConfig.fields.surname.enabled && (
@@ -84,6 +139,24 @@ export default function FormPreview({ formConfig }) {
                 placeholder={`Enter ${formConfig.fields.amountSpent.label.toLowerCase()}`}
               />
             </div>
+          )}
+
+          {/* New: Render custom fields */}
+          {(formConfig.customFields || []).map((customField) => 
+            customField.enabled && (
+              <div className="form-field" key={customField.id}>
+                <label>
+                  {customField.label}
+                  {customField.required && <span className="required">*</span>}
+                </label>
+                <input
+                  type={customField.type}
+                  value={formData[customField.id] || ''}
+                  onChange={(e) => updateField(customField.id, e.target.value)}
+                  placeholder={customField.placeholder || `Enter ${customField.label.toLowerCase()}`}
+                />
+              </div>
+            )
           )}
 
           {formConfig.fields.privacyPolicy.enabled && (

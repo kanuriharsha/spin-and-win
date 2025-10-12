@@ -523,6 +523,71 @@
   cursor: pointer;
 }
 
+/* Custom fields styles */
+.custom-fields-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #e5e7eb;
+}
+
+.custom-fields-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.custom-fields-header h4 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 18px;
+}
+
+.custom-field-item {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.custom-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.custom-field-header h5 {
+  margin: 0;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.custom-field-item label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.custom-field-item input[type="text"],
+.custom-field-item input[type="number"],
+.custom-field-item select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.custom-field-item input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+}
+
 /* Responsive enhancements */
 @media (max-width: 768px) {
   .editor-tabs {

@@ -1,11 +1,21 @@
 const router = require('express').Router();
 const Wheel = require('../models/wheel.model');
 const SpinResult = require('../models/spinResult.model');
+const User = require('../models/user.model');
 
 const DEFAULT_FORM_CONFIG = {
   enabled: true,
   title: 'Enter Your Details',
   subtitle: 'Please fill in your information to spin the wheel',
+  introText: '',
+  // New: hero banner defaults
+  heroBanner: {
+    enabled: false,
+    image: '',
+    text: 'Welcome to Our Restaurant 🍽️ Spin & Win Your Reward!',
+    textColor: '#ffffff',
+    overlayOpacity: 0.4
+  },
   fields: {
     surname: { enabled: true, label: 'Surname/Initial', required: true },
     name: { enabled: true, label: 'Full Name', required: true },
@@ -16,17 +26,23 @@ const DEFAULT_FORM_CONFIG = {
       policyText: 'Your privacy is important to us. We collect and use your information only for the purpose of this promotion.'
     }
   },
+  customFields: [],
   submitButtonText: 'Next',
   backgroundColor: '#ffffff',
   textColor: '#2c3e50',
   buttonColor: '#3498db'
 };
 
-// Merge helper (restored)
+// Merge helper (updated to preserve heroBanner)
 function mergeFormConfig(incoming = {}) {
   return {
     ...DEFAULT_FORM_CONFIG,
     ...incoming,
+    introText: incoming.introText !== undefined ? incoming.introText : DEFAULT_FORM_CONFIG.introText,
+    heroBanner: {
+      ...DEFAULT_FORM_CONFIG.heroBanner,
+      ...(incoming.heroBanner || {})
+    },
     fields: {
       ...DEFAULT_FORM_CONFIG.fields,
       ...(incoming.fields || {}),
@@ -34,7 +50,8 @@ function mergeFormConfig(incoming = {}) {
       name: { ...DEFAULT_FORM_CONFIG.fields.name, ...(incoming.fields?.name || {}) },
       amountSpent: { ...DEFAULT_FORM_CONFIG.fields.amountSpent, ...(incoming.fields?.amountSpent || {}) },
       privacyPolicy: { ...DEFAULT_FORM_CONFIG.fields.privacyPolicy, ...(incoming.fields?.privacyPolicy || {}) }
-    }
+    },
+    customFields: Array.isArray(incoming.customFields) ? incoming.customFields : []
   };
 }
 
@@ -392,12 +409,52 @@ router.post('/:id/spin', async (req, res, next) => {
       await wheel.save();
     }
 
-    // Persist spin result
+    // Handle loyalty points if prizeType is 'loyalty'
+    let userId = null;
+    if (seg.prizeType === 'loyalty') {
+      // Extract numeric points from amount (e.g., "30 Loyalty Points" -> 30)
+      const pointsMatch = String(seg.amount || '').match(/(\d+)/);
+      const points = pointsMatch ? parseInt(pointsMatch[1], 10) : 0;
+      
+      if (points > 0) {
+        // Find or create user by surname + name
+        let user = await User.findOne({ surname: session.surname, name: session.name });
+        if (!user) {
+          user = await User.create({
+            surname: session.surname,
+            name: session.name,
+            loyaltyPoints: 0,
+            pointsHistory: []
+          });
+        }
+        // Award points
+        user.loyaltyPoints += points;
+        user.pointsHistory.push({
+          wheelId: wheel._id,
+          spinResultId: session._id,
+          points,
+          prize: seg.text,
+          timestamp: new Date()
+        });
+        await user.save();
+        userId = user._id;
+      }
+    }
+
+    // Persist spin result with prize details
     session.winner = seg.text;
+    session.prizeType = seg.prizeType || 'other';
+    session.prizeAmount = seg.amount || '';
+    session.userId = userId;
     session.outTime = new Date();
     await session.save();
 
-    res.json({ index, text: seg.text });
+    res.json({ 
+      index, 
+      text: seg.text,
+      prizeType: seg.prizeType || 'other',
+      prizeAmount: seg.amount || ''
+    });
   } catch (err) {
     next(err);
   }
