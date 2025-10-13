@@ -617,10 +617,23 @@
   color: #1f2937;
 }
 
-@media (max-width: 520px) {
-  .thank-you-card {
-    padding: 28px 20px;
-  }
+.wheel-segment-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  word-break: break-word;
+  overflow: hidden;
+  padding: 2px 8px;
+  line-height: 1.15;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  /* Ellipsis for overflow */
+  white-space: normal;
 }
 
 
