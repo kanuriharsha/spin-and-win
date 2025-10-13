@@ -482,7 +482,7 @@ export default function CustomWheel() {
                 marginTop: 'calc(-1 * clamp(24px, 6vw, 40px))',
                 marginBottom: 'clamp(24px, 6vw, 32px)',
                 height: 'clamp(220px, 60vw, 280px)',
-                borderRadius: 'clamp(18px, 4vw, 18px) clamp(18px, 4vw, 18px) 0 0',
+                borderRadius: 'clamp(18px, 4vw, 18px)',
                 overflow: 'hidden',
                 backgroundImage: `url(${config.heroBanner.image})`,
                 backgroundSize: 'cover',
