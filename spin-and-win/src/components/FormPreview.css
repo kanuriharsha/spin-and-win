@@ -1,6 +1,7 @@
 .form-preview-container {
   width: 100%;
   max-width: 460px;
+  /* border-radius: 100px; */
 }
 
 .form-preview-disabled {
