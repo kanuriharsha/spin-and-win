@@ -106,6 +106,51 @@ router.put('/session/:sessionId/result', async (req, res, next) => {
   }
 });
 
+// New: Check if user already spun (by device fingerprint or sessionId)
+router.post('/check-session', async (req, res, next) => {
+  try {
+    const { routeName, deviceFingerprint } = req.body;
+    if (!routeName) {
+      return res.status(400).json({ message: 'routeName is required' });
+    }
+
+    const wheel = await Wheel.findOne({ routeName }).lean();
+    if (!wheel) {
+      return res.status(404).json({ message: 'Wheel not found' });
+    }
+
+    const expiryMinutes = wheel.sessionExpiryMinutes || 60;
+    const expiryTime = new Date(Date.now() - expiryMinutes * 60 * 1000);
+
+    // Find recent spin by device fingerprint or IP
+    const recentSpin = await SpinResult.findOne({
+      routeName,
+      winner: { $exists: true, $ne: null },
+      outTime: { $gte: expiryTime },
+      $or: [
+        { sessionId: deviceFingerprint },
+        { ipAddress: req.ip }
+      ]
+    }).sort({ outTime: -1 });
+
+    if (recentSpin) {
+      return res.json({
+        hasSpun: true,
+        winner: recentSpin.winner,
+        prizeAmount: recentSpin.prizeAmount,
+        prizeType: recentSpin.prizeType,
+        outTime: recentSpin.outTime,
+        expiresAt: new Date(recentSpin.outTime.getTime() + expiryMinutes * 60 * 1000),
+        thankYouMessage: wheel.thankYouMessage || 'Thanks for Availing the Offer!' // New
+      });
+    }
+
+    res.json({ hasSpun: false });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Update approval flag
 router.put('/:id/approve', async (req, res, next) => {
   try {

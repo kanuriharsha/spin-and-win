@@ -126,7 +126,6 @@ export default function Editor() {
   const [activeTab, setActiveTab] = useState('wheel');
   const [wheelData, setWheelData] = useState({
     name: 'New Spinning Wheel',
-    // New: description persisted to DB
     description: '',
     routeName: '',
     segments: [
@@ -137,14 +136,13 @@ export default function Editor() {
     ],
     centerImage: null,
     formConfig: DEFAULT_FORM_CONFIG,
-    // New: persisted spin + center image config
-    spinDurationSec: null,           // seconds (null => 3–5s random)
-    spinBaseTurns: 6,                // full rotations before landing
-    centerImageRadius: 70,           // SVG radius for center image
-    // New: wheel background color
+    spinDurationSec: null,
+    spinBaseTurns: 6,
+    centerImageRadius: 70,
     wheelBackgroundColor: '#ffffff',
-    // New: container (wrapper) background color (persisted)
-    wrapperBackgroundColor: '#ffffff'
+    wrapperBackgroundColor: '#ffffff',
+    sessionExpiryMinutes: 60,
+    thankYouMessage: 'Thanks for Availing the Offer!' // New: default thank you message
   });
   
   const [activeSegmentIndex, setActiveSegmentIndex] = useState(0);
@@ -160,17 +158,16 @@ export default function Editor() {
       .then((data) => {
         setWheelData({
           ...data,
-          // New: fallback if not present
           description: data.description || '',
           segments: Array.isArray(data.segments) ? data.segments : [],
           formConfig: mergeFormConfig(data.formConfig),
-          // safe defaults
           spinDurationSec: (Number.isFinite(data.spinDurationSec) && data.spinDurationSec >= 1 && data.spinDurationSec <= 60) ? data.spinDurationSec : null,
           spinBaseTurns: Math.max(1, Math.min(20, Math.floor(Number(data.spinBaseTurns ?? 6)))),
           centerImageRadius: Math.max(20, Math.min(160, Math.floor(Number(data.centerImageRadius ?? 70)))),
-          // New: fallbacks
           wheelBackgroundColor: data.wheelBackgroundColor || '#ffffff',
-          wrapperBackgroundColor: data.wrapperBackgroundColor || '#ffffff'
+          wrapperBackgroundColor: data.wrapperBackgroundColor || '#ffffff',
+          sessionExpiryMinutes: Math.max(1, Math.min(1440, Math.floor(Number(data.sessionExpiryMinutes ?? 60)))),
+          thankYouMessage: data.thankYouMessage || 'Thanks for Availing the Offer!' // New
         });
         setActiveSegmentIndex(0);
       })
@@ -595,6 +592,37 @@ export default function Editor() {
                     }
                   />
                   <small>How many full turns before the wheel lands.</small>
+                </div>
+
+                {/* New: Session Expiry */}
+                <div className="form-group">
+                  <label>Session Expiry (minutes)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1440"
+                    step="1"
+                    value={wheelData.sessionExpiryMinutes ?? 60}
+                    onChange={(e) =>
+                      setWheelData(p => ({ ...p, sessionExpiryMinutes: Math.max(1, Math.min(1440, Math.floor(Number(e.target.value) || 60))) }))
+                    }
+                  />
+                  <small>How long (in minutes) before a user can spin again from the same device. Max 1440 (24 hours).</small>
+                </div>
+
+                {/* New: Thank You Message */}
+                <div className="form-group">
+                  <label>Thank You Message</label>
+                  <input
+                    type="text"
+                    maxLength="200"
+                    value={wheelData.thankYouMessage ?? 'Thanks for Availing the Offer!'}
+                    onChange={(e) =>
+                      setWheelData(p => ({ ...p, thankYouMessage: e.target.value.slice(0, 200) }))
+                    }
+                    placeholder="Thanks for Availing the Offer!"
+                  />
+                  <small>Message shown when user has already spun (max 200 characters).</small>
                 </div>
               </div>
             </div>

@@ -122,6 +122,19 @@ function sanitizeSpinBaseTurns(value) {
   return Math.max(1, Math.min(20, Math.floor(n)));
 }
 
+// New: sanitize session expiry minutes (1 min to 24 hours)
+function sanitizeSessionExpiryMinutes(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 60;
+  return Math.max(1, Math.min(1440, Math.floor(n)));
+}
+
+// New: sanitize thank you message (max 200 chars)
+function sanitizeThankYouMessage(value) {
+  const s = String(value ?? 'Thanks for Availing the Offer!').trim();
+  return s.length > 200 ? s.slice(0, 200) : s;
+}
+
 // Rule matching helpers (used in spin)
 function matchRule(op, lhs, rhs) {
   switch (op) {
@@ -257,16 +270,16 @@ router.post('/', async (req, res, next) => {
     const wheel = await Wheel.create({
       ...req.body,
       routeName,
-      // New: persist sanitized description
       description: sanitizeShortText(req.body.description, 500),
       segments: preparedSegments,
       formConfig: mergeFormConfig(req.body.formConfig),
       spinDurationSec: sanitizeSpinDurationSec(req.body.spinDurationSec),
       spinBaseTurns: sanitizeSpinBaseTurns(req.body.spinBaseTurns),
       centerImageRadius: sanitizeCenterImageRadius(req.body.centerImageRadius),
-      // New: persist sanitized colors
       wheelBackgroundColor: sanitizeColor(req.body.wheelBackgroundColor, '#ffffff'),
-      wrapperBackgroundColor: sanitizeColor(req.body.wrapperBackgroundColor, '#ffffff')
+      wrapperBackgroundColor: sanitizeColor(req.body.wrapperBackgroundColor, '#ffffff'),
+      sessionExpiryMinutes: sanitizeSessionExpiryMinutes(req.body.sessionExpiryMinutes),
+      thankYouMessage: sanitizeThankYouMessage(req.body.thankYouMessage) // New
     });
     res.status(201).json(wheel);
   } catch (err) {
@@ -335,6 +348,14 @@ router.put('/:id', async (req, res, next) => {
       updateDoc.wheelBackgroundColor = sanitizeColor(req.body.wheelBackgroundColor, existing.wheelBackgroundColor || '#ffffff');
     if ('wrapperBackgroundColor' in req.body)
       updateDoc.wrapperBackgroundColor = sanitizeColor(req.body.wrapperBackgroundColor, existing.wrapperBackgroundColor || '#ffffff');
+
+    // New: optional session expiry update
+    if ('sessionExpiryMinutes' in req.body)
+      updateDoc.sessionExpiryMinutes = sanitizeSessionExpiryMinutes(req.body.sessionExpiryMinutes);
+
+    // New: optional thank you message update
+    if ('thankYouMessage' in req.body)
+      updateDoc.thankYouMessage = sanitizeThankYouMessage(req.body.thankYouMessage);
 
     const updatedWheel = await Wheel.findByIdAndUpdate(req.params.id, updateDoc, { new: true });
     res.json(updatedWheel);

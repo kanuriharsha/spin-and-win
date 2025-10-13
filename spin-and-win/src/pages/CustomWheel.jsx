@@ -108,8 +108,21 @@ export default function CustomWheel() {
   const [showNameModal, setShowNameModal] = useState(false);
   const [tempName, setTempName] = useState('');
   const [tempSurname, setTempSurname] = useState('');
-  // Happy sound audio context
   const audioCtxRef = useRef(null);
+  
+  // New: thank you state for already spun users
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [previousWin, setPreviousWin] = useState(null);
+
+  // New: Generate device fingerprint
+  const getDeviceFingerprint = () => {
+    const stored = localStorage.getItem('deviceFingerprint');
+    if (stored) return stored;
+    
+    const fingerprint = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${navigator.userAgent}`;
+    localStorage.setItem('deviceFingerprint', fingerprint);
+    return fingerprint;
+  };
 
   useEffect(() => {
     fetch(`${API_URL}/api/wheels/route/${routeName}`)
@@ -124,6 +137,24 @@ export default function CustomWheel() {
           segments: normalizeSegments(data.segments)
         });
         setShowForm(mergeFormConfig(data.formConfig).enabled);
+        
+        // New: Check if user already spun
+        return fetch(`${API_URL}/api/spin-results/check-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            routeName,
+            deviceFingerprint: getDeviceFingerprint()
+          })
+        });
+      })
+      .then(res => res.json())
+      .then(sessionData => {
+        if (sessionData.hasSpun) {
+          setPreviousWin(sessionData);
+          setShowThankYou(true);
+          setShowForm(false);
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -141,6 +172,7 @@ export default function CustomWheel() {
     evt.preventDefault();
     if (!validateForm()) return;
     try {
+      const deviceFingerprint = getDeviceFingerprint();
       const payload = {
         wheelId: wheelData._id,
         routeName,
@@ -149,7 +181,6 @@ export default function CustomWheel() {
         amountSpent: formData.amountSpent.trim()
       };
       
-      // New: add custom field values
       (wheelData.formConfig.customFields || []).forEach(field => {
         if (field.enabled) {
           payload[field.id] = (formData[field.id] || '').trim();
@@ -159,7 +190,7 @@ export default function CustomWheel() {
       const response = await fetch(`${API_URL}/api/spin-results/session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, sessionId: deviceFingerprint })
       });
       if (!response.ok) throw new Error(await response.text());
       const data = await response.json();
@@ -394,6 +425,45 @@ export default function CustomWheel() {
 
   if (error) {
     return <NotFound />;
+  }
+
+  // New: Show thank you screen if already spun
+  if (showThankYou && previousWin) {
+    const expiresAt = new Date(previousWin.expiresAt);
+    const minutesLeft = Math.ceil((expiresAt - new Date()) / 60000);
+    const thankYouText = previousWin.thankYouMessage || wheelData?.thankYouMessage || 'Thanks for Availing the Offer!';
+    
+    return (
+      <div className="custom-wheel-page">
+        <div className="thank-you-container">
+          <div className="thank-you-card">
+            <div className="thank-you-icon">🎉</div>
+            <h1>{thankYouText}</h1>
+            <p className="thank-you-message">
+              You've already received your prize: <strong>{previousWin.winner}</strong>
+              {previousWin.prizeAmount && <span> • {previousWin.prizeAmount}</span>}
+            </p>
+            
+           <div className="previous-win-details text-center">
+  <p>
+    Concept powered by{' '}
+    <strong><a
+      href="https://umasai2465.wixsite.com/peh-network-hub"
+      target="_blank"
+      rel="noopener noreferrer"
+  className="text-red-600 font-bold no-underline hover:text-red-700"
+    >
+      PEH Network Hub
+    </a>
+    </strong>
+  </p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (showForm && wheelData.formConfig?.enabled) {

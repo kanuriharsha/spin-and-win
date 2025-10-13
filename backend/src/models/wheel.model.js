@@ -45,7 +45,7 @@ const WheelSchema = new mongoose.Schema(
     // New: container (wrapper) background color
     wrapperBackgroundColor: { type: String, default: '#ffffff' },
     // New: persisted center image radius (SVG units, default matches current UI)
-    centerImageRadius: { type: Number, min: 20, max: 160, default: 70 },
+    centerImageRadius: { type: Number, default: 70, min: 20, max: 160 },
     // New: editor-configurable spin animation config
     spinDurationSec: { type: Number, min: 1, max: 60, default: null },
     spinBaseTurns: { type: Number, default: 6, min: 1, max: 20 },        // rotations before landing
@@ -102,6 +102,15 @@ const WheelSchema = new mongoose.Schema(
       backgroundColor: { type: String, default: '#ffffff' },
       textColor: { type: String, default: '#2c3e50' },
       buttonColor: { type: String, default: '#3498db' }
+    },
+    // New: session expiry duration in minutes
+    sessionExpiryMinutes: { type: Number, default: 60, min: 1, max: 1440 }, // 1 min to 24 hours
+    // New: customizable thank you message
+    thankYouMessage: { 
+      type: String, 
+      default: 'Thanks for Availing the Offer!',
+      trim: true,
+      maxlength: 200
     },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }

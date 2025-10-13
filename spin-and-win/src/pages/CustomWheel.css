@@ -532,4 +532,95 @@
   margin-top: 0;
 }
 
+/* Thank You Styles */
+.thank-you-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.thank-you-card {
+  background: white;
+  border-radius: 24px;
+  padding: clamp(32px, 8vw, 48px);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.thank-you-icon {
+  font-size: clamp(64px, 15vw, 80px);
+  margin-bottom: 20px;
+}
+
+.thank-you-card h1 {
+  color: #1f2937;
+  margin: 0 0 16px 0;
+  font-size: clamp(24px, 6vw, 32px);
+}
+
+.thank-you-message {
+  color: #4b5563;
+  font-size: clamp(16px, 4vw, 18px);
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.thank-you-message strong {
+  color: #7c3aed;
+  font-weight: 700;
+}
+
+.session-info {
+  background: #f3f4f6;
+  padding: 16px;
+  border-radius: 12px;
+  color: #374151;
+  font-size: clamp(14px, 3.5vw, 16px);
+  margin-bottom: 20px;
+}
+
+.session-info strong {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.previous-win-details {
+  border-top: 2px solid #e5e7eb;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.previous-win-details p {
+  color: #6b7280;
+  margin: 8px 0;
+  font-size: clamp(14px, 3.5vw, 15px);
+}
+
+.previous-win-details strong {
+  color: #1f2937;
+}
+
+@media (max-width: 520px) {
+  .thank-you-card {
+    padding: 28px 20px;
+  }
+}
+
 
