@@ -429,8 +429,6 @@ export default function CustomWheel() {
 
   // New: Show thank you screen if already spun
   if (showThankYou && previousWin) {
-    const expiresAt = new Date(previousWin.expiresAt);
-    const minutesLeft = Math.ceil((expiresAt - new Date()) / 60000);
     const thankYouText = previousWin.thankYouMessage || wheelData?.thankYouMessage || 'Thanks for Availing the Offer!';
     
     return (
