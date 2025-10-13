@@ -439,7 +439,7 @@ export default function CustomWheel() {
             <h1>{thankYouText}</h1>
             <p className="thank-you-message">
               You've already received your prize: <strong>{previousWin.winner}</strong>
-              {previousWin.prizeAmount && <span> • {previousWin.prizeAmount}</span>}
+              {previousWin.prizeAmount && <span> </span>}
             </p>
             
            <div className="previous-win-details text-center">
@@ -781,7 +781,7 @@ export default function CustomWheel() {
           </button>
           <div className="winner-banner" role="status">
             Winner: <strong>{winner?.text || '-'}</strong>
-            {winner?.amount && <span> • {winner.amount}</span>}
+            {winner?.amount && <span> </span>}
           </div>
         </div>
       </div>
