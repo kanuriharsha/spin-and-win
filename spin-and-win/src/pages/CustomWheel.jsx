@@ -266,6 +266,17 @@ export default function CustomWheel() {
     }
   };
 
+  // New: play clapping sound after reward granted
+  const playClapping = () => {
+    try {
+      const audio = new window.Audio(`${process.env.PUBLIC_URL}/Clapping.mp3`);
+      audio.volume = 0.8;
+      audio.play();
+    } catch (_) {
+      // ignore sound errors silently
+    }
+  };
+
   // Ensure a session exists even when the form is disabled
   const ensureSession = useRef(null);
   ensureSession.current = async () => {
@@ -395,6 +406,8 @@ export default function CustomWheel() {
 
     // Play happy sound
     playYay();
+    // Play clapping sound after reward granted
+    playClapping();
 
     if (sessionId && prizeText) {
       try {
