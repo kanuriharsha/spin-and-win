@@ -723,9 +723,6 @@ export default function CustomWheel() {
                     const tx = cx + (r * 0.64) * Math.cos(degToRad(mid));
                     const ty = cy + (r * 0.64) * Math.sin(degToRad(mid));
                     const segPath = segmentPath(cx, cy, r, start, end);
-                    // Calculate box size for text
-                    const boxWidth = 180;
-                    const boxHeight = 60;
                     return (
                       <g key={i}>
                         {/* Base colored slice */}
@@ -748,21 +745,20 @@ export default function CustomWheel() {
                             />
                           </>
                         )}
-                        {/* Wrapped text using foreignObject */}
-                        <foreignObject
-                          x={tx - boxWidth / 2}
-                          y={ty - boxHeight / 2}
-                          width={boxWidth}
-                          height={boxHeight}
+                        {/* Text */}
+                        <text
+                          x={tx}
+                          y={ty}
+                          fill="#fff"
+                          fontSize="44"
+                          fontWeight="700"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
                           transform={`rotate(${mid}, ${tx}, ${ty})`}
+                          style={{ paintOrder: 'stroke', stroke: 'rgba(0,0,0,0.25)', strokeWidth: 3 }}
                         >
-                          <div
-                            className="wheel-segment-text"
-                            xmlns="http://www.w3.org/1999/xhtml"
-                          >
-                            {segment.text}
-                          </div>
-                        </foreignObject>
+                          {segment.text}
+                        </text>
                       </g>
                     );
                   })}
