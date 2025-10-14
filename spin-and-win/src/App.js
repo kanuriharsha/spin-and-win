@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import NotFound from './pages/NotFound';
+import AnalyticsLogin from './pages/AnalyticsLogin';
 
 function App() {
   return (
@@ -29,6 +30,8 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/editor" element={<Editor />} />
             <Route path="/editor/:id" element={<Editor />} />
+            {/* Add Analytics Login route */}
+            <Route path="/analytics-login" element={<AnalyticsLogin />} />
           </Route>
           {/* Public dynamic wheel routes (no auth) */}
           <Route path=":routeName" element={<CustomWheel />} />

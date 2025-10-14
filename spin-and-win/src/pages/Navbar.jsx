@@ -31,14 +31,14 @@ export default function Navbar() {
           >
             Create New Wheel
           </Link>
+          <Link
+            to="/analytics-login"
+            className={`nav-link ${location.pathname === '/analytics-login' ? 'active' : ''}`}
+          >
+            Analytics Login
+          </Link>
         </div>
       </div>
     </nav>
   );
 }
-//           </Link>
-//         </div>
-//       </div>
-//     </nav>
-//   );
-// }
