@@ -1,11 +1,7 @@
 const router = require('express').Router();
 const Login = require('../models/login.model');
 
-<<<<<<< HEAD
 // POST /api/auth/login
-=======
-// POST /api/auth/login 
->>>>>>> d79af09766903dbd7cb087598c8d3aafd690b1c1
 router.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body || {};
