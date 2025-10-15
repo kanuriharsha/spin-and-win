@@ -83,6 +83,7 @@ export default function Dashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <h1>Spin & Win Dashboard</h1>
+<<<<<<< HEAD
         <div className="header-actions">
           <button className="analytics-btn" onClick={() => navigate('/analytics')}>
             📊 Analytics
@@ -91,6 +92,11 @@ export default function Dashboard() {
             Create New Wheel
           </button>
         </div>
+=======
+        <button className="create-btn" onClick={createNewWheel}>
+          Create New Wheel
+        </button>
+>>>>>>> d79af09766903dbd7cb087598c8d3aafd690b1c1
       </header>
 
       <div className="wheels-grid">
