@@ -6,17 +6,11 @@ import CustomWheel from './pages/CustomWheel';
 import Navbar from './pages/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
-<<<<<<< HEAD
 import Analytics from './pages/Analytics';
-import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './context/AuthContext';
-import NotFound from './pages/NotFound';
-=======
-import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './context/AuthContext';
-import NotFound from './pages/NotFound';
 import AnalyticsLogin from './pages/AnalyticsLogin';
->>>>>>> d79af09766903dbd7cb087598c8d3aafd690b1c1
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -37,12 +31,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/editor" element={<Editor />} />
             <Route path="/editor/:id" element={<Editor />} />
-<<<<<<< HEAD
             <Route path="/analytics" element={<Analytics />} />
-=======
-            {/* Add Analytics Login route */}
-            <Route path="/analytics-login" element={<AnalyticsLogin />} />
->>>>>>> d79af09766903dbd7cb087598c8d3aafd690b1c1
           </Route>
           {/* Public dynamic wheel routes (no auth) */}
           <Route path=":routeName" element={<CustomWheel />} />
