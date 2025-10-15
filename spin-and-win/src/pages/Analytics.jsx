@@ -23,7 +23,7 @@ export default function Analytics() {
 
   useEffect(() => {
     fetchLogins();
-  }, [fetchLogins]);
+  }, []);
 
   const fetchLogins = async () => {
     try {
