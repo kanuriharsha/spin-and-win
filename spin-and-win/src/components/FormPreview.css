@@ -1,0 +1,168 @@
+.form-preview-container {
+  width: 100%;
+  max-width: 460px;
+  /* border-radius: 100px; */
+}
+
+.form-preview-disabled {
+  padding: 40px 20px;
+  border: 2px dashed #d4d4d8;
+  border-radius: 12px;
+  background: #f8fafc;
+  text-align: center;
+  color: #6b7280;
+}
+
+.form-preview {
+  border-radius: 14px;
+  padding: 28px 24px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.form-header h2 {
+  margin: 0 0 8px 0;
+  font-size: clamp(20px, 6vw, 26px);
+}
+
+.form-header p {
+  margin: 0;
+  opacity: 0.75;
+  font-size: clamp(14px, 4vw, 16px);
+}
+
+.entry-form .form-field {
+  margin-bottom: 20px;
+  display: grid;
+  gap: 6px;
+}
+
+.entry-form label {
+  font-weight: 600;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+.entry-form input[type='text'] {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  font-size: 15px;
+  transition: border-color 0.2s;
+}
+
+.entry-form input[type='text']:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.checkbox-label input {
+  margin-top: 2px;
+  width: 20px;
+  height: 20px;
+}
+
+.privacy-link {
+  border: none;
+  background: none;
+  color: #2563eb;
+  text-decoration: underline;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 999px;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.privacy-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 1100;
+  padding: 20px;
+}
+
+.privacy-modal {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.privacy-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.close-btn {
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.privacy-modal-content {
+  padding: 20px 22px;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+
+/* Hero Banner Preview */
+.hero-banner-preview {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 520px) {
+  .form-preview {
+    padding: 22px 18px;
+  }
+
+  .checkbox-label {
+    font-size: 15px;
+  }
+
+  .privacy-modal {
+    margin: 0;
+  }
+
+  .hero-banner-preview {
+    height: 200px !important;
+    margin-left: -18px !important;
+    margin-top: -22px !important;
+    width: calc(100% + 36px) !important;
+  }
+}

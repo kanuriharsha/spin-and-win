@@ -1,0 +1,8 @@
+.nf-wrap{min-height:100vh;display:grid;place-items:center;background:#0f172a;padding:16px;color:#e2e8f0}
+.nf-card{width:100%;max-width:560px;background:linear-gradient(180deg,#1f2937,#111827);border-radius:16px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08)}
+.nf-title{font-size:20px;line-height:1.3;margin:0 0 8px;font-weight:800;background:linear-gradient(90deg,#fde68a,#f97316);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nf-sub{margin:0 0 16px;font-size:14px;color:#cbd5e1}
+.nf-actions{display:flex;gap:10px;flex-wrap:wrap}
+.nf-btn{flex:1 1 auto;text-align:center;padding:12px 14px;border-radius:10px;background:#1f2937;color:#e2e8f0;text-decoration:none;border:1px solid rgba(255,255,255,.15)}
+.nf-btn.primary{background:linear-gradient(90deg,#22c55e,#16a34a);border:none;color:#fff}
+@media(min-width:480px){.nf-title{font-size:24px}.nf-sub{font-size:16px}}
