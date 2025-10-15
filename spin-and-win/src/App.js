@@ -7,7 +7,6 @@ import Navbar from './pages/Navbar';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Analytics from './pages/Analytics';
-import AnalyticsLogin from './pages/AnalyticsLogin';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import NotFound from './pages/NotFound';

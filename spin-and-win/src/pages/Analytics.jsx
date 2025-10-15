@@ -23,7 +23,7 @@ export default function Analytics() {
 
   useEffect(() => {
     fetchLogins();
-  }, []);
+  }, [fetchLogins]);
 
   const fetchLogins = async () => {
     try {
@@ -193,10 +193,7 @@ export default function Analytics() {
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm(prev => ({ ...prev, [name]: value }));
-  };
+
 
   // Filter out "All" routeName for stats and grid
   const filteredLogins = logins.filter(
