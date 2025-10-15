@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Analytics.css';
 
@@ -21,11 +21,7 @@ export default function Analytics() {
   const [createForm, setCreateForm] = useState({ username: '', password: '', routeName: 'All', onboard: '', access: 'enable' });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchLogins();
-  }, []);
-
-  const fetchLogins = async () => {
+  const fetchLogins = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_URL}/api/logins`);
@@ -37,7 +33,12 @@ export default function Analytics() {
       setLoading(false);
       showMessage('error', 'Failed to load login data');
     }
-  };
+  }, [API_URL]);
+
+  useEffect(() => {
+    fetchLogins();
+  }, [fetchLogins]);
+
 
   const handleEdit = (login) => {
     setEditingId(login._id);
