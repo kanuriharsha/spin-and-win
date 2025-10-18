@@ -33,7 +33,7 @@ export default function Analytics() {
       setLoading(false);
       showMessage('error', 'Failed to load login data');
     }
-  }, [API_URL]);
+  }, []);
 
   useEffect(() => {
     fetchLogins();

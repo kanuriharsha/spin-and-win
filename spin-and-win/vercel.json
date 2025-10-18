@@ -7,6 +7,9 @@
       "config": { "distDir": "build" }
     }
   ],
+  "env": {
+    "CI": ""
+  },
   "routes": [
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/" }
