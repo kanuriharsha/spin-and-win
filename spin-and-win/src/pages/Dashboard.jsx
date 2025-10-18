@@ -84,9 +84,9 @@ export default function Dashboard() {
       <header className="dashboard-header">
         <h1>Spin & Win Dashboard</h1>
         <div className="header-actions">
-          <button className="analytics-btn" onClick={() => navigate('/analytics')}>
+          {/* <button className="analytics-btn" onClick={() => navigate('/analytics')}>
             📊 Analytics
-          </button>
+          </button> */}
           <button className="create-btn" onClick={createNewWheel}>
             Create New Wheel
           </button>
