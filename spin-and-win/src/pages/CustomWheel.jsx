@@ -114,9 +114,7 @@ export default function CustomWheel() {
   const [showThankYou, setShowThankYou] = useState(false);
   const [previousWin, setPreviousWin] = useState(null);
 
-  // New: countdown for remaining time until next spin (seconds)
-  const [timeLeftSec, setTimeLeftSec] = useState(null);
-  const countdownRef = useRef(null);
+  // (countdown UI removed when not displayed) — we keep expiry handling later without storing a visible counter
 
   // New: Generate device fingerprint
   const getDeviceFingerprint = () => {
@@ -576,31 +574,13 @@ export default function CustomWheel() {
     };
   }, []);
 
-  // Format seconds -> "Xm Ys"
-  const formatTime = (secs) => {
-    if (secs == null) return '';
-    const s = Math.max(0, Math.floor(secs));
-    const m = Math.floor(s / 60);
-    const r = s % 60;
-    if (m > 0) return `${m}m ${String(r).padStart(2, '0')}s`;
-    return `${r}s`;
-  };
-  
-  // Start/stop countdown when thank-you view is active and expiresAt is present
+  // Start/stop expiry watcher when thank-you view is active and expiresAt is present
   useEffect(() => {
-    if (!showThankYou || !previousWin?.expiresAt) {
-      setTimeLeftSec(null);
-      if (countdownRef.current) {
-        clearInterval(countdownRef.current);
-        countdownRef.current = null;
-      }
-      return;
-    }
+    if (!showThankYou || !previousWin?.expiresAt) return undefined;
 
     const expiryMs = new Date(previousWin.expiresAt).getTime();
     const tick = () => {
       const diffSec = Math.ceil((expiryMs - Date.now()) / 1000);
-      setTimeLeftSec(Math.max(0, diffSec));
       if (diffSec <= 0) {
         // expired: clear local marker and show form so the user can spin again
         try { localStorage.removeItem(SPUN_KEY); } catch (_) {}
@@ -609,21 +589,13 @@ export default function CustomWheel() {
         setShowThankYou(false);
         setPreviousWin(null);
         setShowForm(true);
-        if (countdownRef.current) {
-          clearInterval(countdownRef.current);
-          countdownRef.current = null;
-        }
       }
     };
 
+    // run immediately and then every second until expiry
     tick();
-    countdownRef.current = setInterval(tick, 1000);
-    return () => {
-      if (countdownRef.current) {
-        clearInterval(countdownRef.current);
-        countdownRef.current = null;
-      }
-    };
+    let intervalId = setInterval(tick, 1000);
+    return () => { clearInterval(intervalId); };
   }, [showThankYou, previousWin?.expiresAt, SPUN_KEY, persistSessionId]);
 
   if (loading) {
