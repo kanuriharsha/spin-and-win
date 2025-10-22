@@ -650,7 +650,7 @@ export default function CustomWheel() {
             </p>
 
             {/* Session expiry / countdown info */}
-            <div className="session-info" aria-live="polite">
+            {/* <div className="session-info" aria-live="polite">
               {timeLeftSec == null ? (
                 <span>Session info not available</span>
               ) : timeLeftSec > 0 ? (
@@ -658,7 +658,7 @@ export default function CustomWheel() {
               ) : (
                 <span>Your session has expired — you can spin again now.</span>
               )}
-            </div>
+            </div> */}
 
             <div className="previous-win-details text-center">
   <p>
