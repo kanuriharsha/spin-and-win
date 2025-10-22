@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import NotFound from './NotFound';
 import './CustomWheel.css';
@@ -129,10 +129,12 @@ export default function CustomWheel() {
   };
 
   // --- New: localStorage keys + helpers ---
-  const SESSION_KEY = `sw_session_${String(routeName || '').toLowerCase()}`;
-  const SPUN_KEY = `sw_spun_${String(routeName || '').toLowerCase()}`;
+  // Memoized storage keys so they are stable across renders and usable in effect deps
+  const SESSION_KEY = useMemo(() => `sw_session_${String(routeName || '').toLowerCase()}`, [routeName]);
+  const SPUN_KEY = useMemo(() => `sw_spun_${String(routeName || '').toLowerCase()}`, [routeName]);
 
-  const getLocalSpun = () => {
+  // Wrap storage helpers in useCallback so they can safely be used in effect deps
+  const getLocalSpun = useCallback(() => {
     try {
       const raw = localStorage.getItem(SPUN_KEY);
       if (!raw) return null;
@@ -146,9 +148,9 @@ export default function CustomWheel() {
     } catch (_) {
       return null;
     }
-  };
+  }, [SPUN_KEY]);
 
-  const setLocalSpun = (payload = {}) => {
+  const setLocalSpun = useCallback((payload = {}) => {
     try {
       // If server provided exact expiresAt, prefer it (store as-is)
       if (payload.expiresAt) {
@@ -175,22 +177,22 @@ export default function CustomWheel() {
       const toStore = { ...payload, expiresAt };
       localStorage.setItem(SPUN_KEY, JSON.stringify(toStore));
     } catch (_) { /* ignore storage errors */ }
-  };
+  }, [SPUN_KEY, wheelData?.sessionExpiryMinutes]);
 
-  const getStoredSessionId = () => {
+  const getStoredSessionId = useCallback(() => {
     try {
       return localStorage.getItem(SESSION_KEY) || null;
     } catch (_) {
       return null;
     }
-  };
+  }, [SESSION_KEY]);
 
-  const persistSessionId = (id) => {
+  const persistSessionId = useCallback((id) => {
     try {
       if (id) localStorage.setItem(SESSION_KEY, id);
       else localStorage.removeItem(SESSION_KEY);
     } catch (_) { /* ignore */ }
-  };
+  }, [SESSION_KEY]);
   // --- end local helpers ---
 
   useEffect(() => {
@@ -284,13 +286,13 @@ export default function CustomWheel() {
     })();
 
     return () => { cancelled = true; };
-  }, [routeName]);
+  }, [routeName, SPUN_KEY, getLocalSpun, persistSessionId, setLocalSpun]);
 
   // Ensure sessionId persists across refreshes (still okay, but ensureSession will decide whether to reuse)
   useEffect(() => {
     const stored = getStoredSessionId();
     if (stored) setSessionId(stored);
-  }, [routeName]);
+  }, [routeName, getStoredSessionId]);
 
   // Use DB-configured base rotations (fallback 6, clamp 1..20)
   const baseTurnsCfg = Math.max(1, Math.min(20, Math.floor(Number(wheelData?.spinBaseTurns ?? 6))));
@@ -622,7 +624,7 @@ export default function CustomWheel() {
         countdownRef.current = null;
       }
     };
-  }, [showThankYou, previousWin?.expiresAt]);
+  }, [showThankYou, previousWin?.expiresAt, SPUN_KEY, persistSessionId]);
 
   if (loading) {
     return <div className="loading-container">Loading wheel...</div>;

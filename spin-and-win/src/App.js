@@ -4,7 +4,6 @@ import Dashboard from './pages/Dashboard';
 import Editor from './pages/Editor';
 import CustomWheel from './pages/CustomWheel';
 import Navbar from './pages/Navbar';
-import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Analytics from './pages/Analytics';
 import ProtectedRoute from './components/ProtectedRoute';
