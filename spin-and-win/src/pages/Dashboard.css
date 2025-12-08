@@ -1,0 +1,266 @@
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: clamp(20px, 5vw, 28px);
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.analytics-btn {
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+  touch-action: manipulation;
+  min-height: 48px;
+  white-space: nowrap;
+}
+
+.analytics-btn:hover {
+  background-color: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.create-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+  touch-action: manipulation;
+  min-height: 48px;
+  white-space: nowrap;
+}
+
+.create-btn:hover {
+  background-color: #2980b9;
+}
+
+.wheels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.wheel-card {
+  background-color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.wheel-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.wheel-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.wheel-preview {
+  height: 160px;
+  background-color: #f5f7fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wheel-thumbnail {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.wheel-thumbnail-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #3498db;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.wheel-info {
+  padding: 16px;
+}
+
+.wheel-info h3 {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+  font-size: clamp(16px, 4vw, 18px);
+}
+
+.wheel-route {
+  color: #7f8c8d;
+  margin: 0;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.wheel-actions {
+  display: flex;
+  border-top: 1px solid #ecf0f1;
+}
+
+.wheel-actions a,
+.wheel-actions button {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+  font-size: 14px;
+  touch-action: manipulation;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-btn {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.view-btn:hover {
+  background-color: #f5f7fa;
+}
+
+.delete-btn {
+  color: #e74c3c;
+}
+
+.delete-btn:hover {
+  background-color: #fcefee;
+}
+
+.loading, .no-wheels {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: #7f8c8d;
+}
+
+.no-wheels h2 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: clamp(18px, 5vw, 24px);
+}
+
+.no-wheels p {
+  font-size: clamp(14px, 4vw, 16px);
+}
+
+/* Tablet responsive */
+@media (max-width: 1024px) {
+  .dashboard-container {
+    padding: 16px;
+  }
+  
+  .wheels-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 12px;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .create-btn {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 18px;
+  }
+  
+  .wheels-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .wheel-preview {
+    height: 140px;
+  }
+  
+  .wheel-thumbnail-placeholder {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+}
+
+/* Small mobile phones */
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 8px;
+  }
+  
+  .dashboard-header {
+    margin-bottom: 20px;
+  }
+  
+  .wheel-card {
+    border-radius: 8px;
+  }
+  
+  .wheel-info {
+    padding: 12px;
+  }
+  
+  .wheel-actions a,
+  .wheel-actions button {
+    font-size: 16px;
+    padding: 16px 12px;
+  }
+  
+  .loading, .no-wheels {
+    padding: 40px 16px;
+  }
+}
