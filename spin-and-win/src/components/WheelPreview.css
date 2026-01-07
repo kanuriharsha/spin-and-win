@@ -1,0 +1,154 @@
+.wheel-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.wheel-wrapper {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 14px; /* natural spacing between wheel, button, banner */
+  background-color: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 520px;
+}
+
+/* New: stage contains the square wheel and the pointer */
+.preview-stage {
+  position: relative;
+  width: min(420px, 90vw);
+  aspect-ratio: 1 / 1;
+  height: auto;
+}
+
+/* Responsive, square wheel */
+.preview-wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  will-change: transform;
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+  z-index: 1;
+}
+
+.preview-center-logo {
+  position: absolute;
+  width: 16%;
+  height: 16%;
+  object-fit: cover;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  z-index: 2;
+}
+
+.preview-pointer {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-left: 22px solid #e53935;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+  z-index: 3;
+  pointer-events: none;
+}
+
+.preview-spin-btn {
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(17,24,39,0.2);
+  transition: transform 0.1s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  touch-action: manipulation;
+  min-height: 48px;
+  font-size: clamp(14px, 3vw, 16px);
+  z-index: 4; /* always above pointer */
+}
+
+/* ...existing code... */
+
+/* For phones (max-width: 768px, adjust as needed) */
+@media (max-width: 768px) {
+  .preview-spin-btn {
+    margin-top: 8px; /* was 600px; keeps button close to wheel */
+  }
+  .wheel-wrapper {
+    gap: 10px; /* optional: tighter spacing (was 14px) */
+  }
+}
+
+/* ...existing code... */
+
+.preview-spin-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.preview-spin-btn:active {
+  transform: translateY(1px);
+}
+
+.preview-winner-banner {
+  font-size: clamp(16px, 4vw, 18px);
+  font-weight: 500;
+  color: #2d3748;
+  text-align: center;
+  padding: 8px 16px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Tablet responsive */
+@media (max-width: 1024px) {
+  .preview-stage {
+    width: min(360px, 88vw);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .preview-stage {
+    width: min(320px, 90vw);
+  }
+  .preview-pointer {
+    right: -6px;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 18px solid #e53935;
+    /* transform: rotate(180deg); rotates the pointer */
+    transform: translateY(-50%) rotate(180deg);
+  }
+}
+
+/* Small mobile phones */
+@media (max-width: 480px) {
+  .preview-stage {
+    width: min(300px, 94vw);
+  }
+  .preview-pointer {
+    right: -4px;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 15px solid #e53935;
+  }
+}
