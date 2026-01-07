@@ -15,13 +15,8 @@ export default function PendingUpdates() {
   const [allUpdates, setAllUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
-  const [selectedUpdate] = useState(null); // legacy modal state (not used now)
-  const [reviewNotes] = useState('');
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [wheelBefore, setWheelBefore] = useState(null);
-  const [wheelAfter, setWheelAfter] = useState(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
   const [routeFilter, setRouteFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [sortBy, setSortBy] = useState('submittedAt');
@@ -90,8 +85,6 @@ export default function PendingUpdates() {
       }
 
       setMessage({ type: 'success', text: `Update approved for wheel: ${data.routeName}` });
-      setSelectedUpdate(null);
-      setReviewNotes('');
       fetchPendingUpdates();
       fetchAllUpdates();
     } catch (err) {
@@ -126,81 +119,7 @@ export default function PendingUpdates() {
     }
   };
 
-  // When a modal opens, fetch the current wheel and build an "after" preview with the pending changes
-  useEffect(() => {
-    if (!selectedUpdate) {
-      setWheelBefore(null);
-      setWheelAfter(null);
-      return;
-    }
-
-    const fetchWheel = async () => {
-      setPreviewLoading(true);
-      try {
-        const wid = selectedUpdate.wheelId?._id || selectedUpdate.wheelId;
-        if (!wid) return;
-        const res = await fetch(`${API_URL}/api/wheels/${wid}`);
-        const data = await res.json().catch(() => ({}));
-        const wheel = data?.wheel || data || {};
-        if (res.ok && wheel?.segments) {
-          setWheelBefore(wheel);
-          setWheelAfter(applyUpdatesToWheel(wheel, selectedUpdate));
-        }
-      } catch (err) {
-        console.error('Failed to load wheel for preview', err);
-      } finally {
-        setPreviewLoading(false);
-      }
-    };
-
-    fetchWheel();
-  }, [selectedUpdate]);
-
-  const applyUpdatesToWheel = (wheel, update) => {
-    const clone = JSON.parse(JSON.stringify(wheel || {}));
-    const segs = Array.isArray(clone.segments) ? [...clone.segments] : [];
-
-    (update?.segmentUpdates || []).forEach((segUpdate) => {
-      const idx = segUpdate.segmentIndex;
-      const upd = segUpdate.updatedData || {};
-
-      if (Number.isInteger(idx) && idx >= 0 && idx < segs.length) {
-        segs[idx] = {
-          ...segs[idx],
-          text: upd.text ?? segs[idx].text,
-          color: upd.color ?? segs[idx].color ?? '#999',
-          image: upd.image !== undefined ? upd.image : segs[idx].image,
-          prizeType: upd.prizeType ?? segs[idx].prizeType,
-          amount: upd.amount !== undefined ? upd.amount : segs[idx].amount,
-          dailyLimit: upd.dailyLimit !== undefined ? upd.dailyLimit : segs[idx].dailyLimit,
-          rules: upd.rules !== undefined ? upd.rules : (segs[idx].rules || [])
-        };
-        return;
-      }
-
-      if (Number.isInteger(idx) && idx === segs.length) {
-        segs.push({
-          text: upd.text || `Prize ${idx + 1}`,
-          color: upd.color || '#999',
-          image: upd.image || null,
-          prizeType: upd.prizeType || 'other',
-          amount: upd.amount || '',
-          dailyLimit: upd.dailyLimit ?? null,
-          rules: upd.rules || []
-        });
-      }
-    });
-
-    const next = { ...clone, segments: segs };
-    if (update?.meta) {
-      next.name = update.meta.name || next.name;
-      next.routeName = update.meta.routeName || next.routeName;
-      next.spinDurationSec = update.meta.spinDurationSec || next.spinDurationSec;
-      next.spinBaseTurns = update.meta.spinBaseTurns || next.spinBaseTurns;
-      next.sessionExpiryMinutes = update.meta.sessionExpiryMinutes || next.sessionExpiryMinutes;
-    }
-    return next;
-  };
+  // Legacy modal/preview code removed — details are now shown on the dedicated detail page
 
   const handleReject = async (updateId) => {
     setProcessing(true);
